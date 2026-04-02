@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "111217332516",
+    "project_id": "ugodriver-9c92a",
+    "storage_bucket": "ugodriver-9c92a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111217332516:android:06daab23a43ec82ee2e3b1",
+        "android_client_info": {
+          "package_name": "com.example.ugo_driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuQ5IIsyixWuy6-5BkXN1oWBcwjeDv8vE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
