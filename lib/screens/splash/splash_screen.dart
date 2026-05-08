@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/responsive.dart';
+import '../../widgets/common/ugo_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -28,7 +30,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
     final auth = context.read<AuthProvider>();
-    await auth.init();
+    try {
+      await auth.init();
+    } catch (_) {}
     if (!mounted) return;
     if (auth.isAuthenticated) {
       final status = auth.user?.status;
@@ -50,25 +54,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       backgroundColor: AppColors.primary,
       body: FadeTransition(
         opacity: _fadeAnim,
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.directions_car, size: 80, color: Colors.white),
-              SizedBox(height: 20),
+              UgoLogo(size: context.rv(100.0, 120.0, 140.0)),
+              const SizedBox(height: 20),
               Text(
                 'UGO Driver',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: context.rv(26.0, 32.0, 38.0),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   fontFamily: 'Poppins',
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 'Smart Student Transport',
-                style: TextStyle(fontSize: 14, color: Colors.white70, fontFamily: 'Poppins'),
+                style: TextStyle(
+                  fontSize: context.rv(12.0, 14.0, 16.0),
+                  color: Colors.white70,
+                  fontFamily: 'Poppins',
+                ),
               ),
             ],
           ),

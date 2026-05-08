@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../models/nomination_model.dart';
 import '../../providers/nomination_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class NominationsScreen extends StatefulWidget {
@@ -89,7 +90,7 @@ class _NominationList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => context.read<NominationProvider>().loadNominations(),
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(context.hPad),
         itemCount: nominations.length,
         itemBuilder: (context, i) => _NominationCard(nomination: nominations[i], showActions: showActions),
       ),
@@ -123,17 +124,17 @@ class _NominationCard extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 48, height: 48,
+                    width: context.rv(44.0, 48.0, 56.0), height: context.rv(44.0, 48.0, 56.0),
                     decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.groups, color: AppColors.primary, size: 26),
+                    child: Icon(Icons.groups, color: AppColors.primary, size: context.iconGlyph),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(nomination.groupName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text(nomination.schoolName, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        Text(nomination.groupName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.fsTitle)),
+                        Text(nomination.schoolName, style: TextStyle(color: AppColors.textSecondary, fontSize: context.fsBody)),
                       ],
                     ),
                   ),

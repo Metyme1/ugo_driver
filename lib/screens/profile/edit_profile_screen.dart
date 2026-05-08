@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/app_button.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -55,7 +56,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Edit Profile')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(context.hPad),
         child: Column(
           children: [
             TextFormField(

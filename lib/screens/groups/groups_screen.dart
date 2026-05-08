@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/group_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class GroupsScreen extends StatefulWidget {
@@ -52,10 +53,11 @@ class _GroupsScreenState extends State<GroupsScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(context.hPad),
                     itemCount: provider.groups.length,
                     itemBuilder: (context, i) {
                       final g = provider.groups[i];
+                      final iconBox = context.rv(44.0, 52.0, 60.0);
                       return GestureDetector(
                         onTap: () => context.push('/groups/${g.id}'),
                         child: Container(
@@ -66,22 +68,22 @@ class _GroupsScreenState extends State<GroupsScreen> {
                             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: EdgeInsets.all(context.hPad),
                             child: Row(
                               children: [
                                 Container(
-                                  width: 52, height: 52,
+                                  width: iconBox, height: iconBox,
                                   decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                                  child: const Icon(Icons.groups, color: AppColors.primary, size: 28),
+                                  child: Icon(Icons.groups, color: AppColors.primary, size: context.iconGlyph),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(g.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                      Text(g.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.fsTitle)),
                                       const SizedBox(height: 2),
-                                      Text(g.schoolName, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                                      Text(g.schoolName, style: TextStyle(color: AppColors.textSecondary, fontSize: context.fsBody)),
                                       const SizedBox(height: 6),
                                       Row(
                                         children: [

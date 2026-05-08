@@ -20,6 +20,8 @@ import '../screens/notifications/notifications_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/change_password_screen.dart';
+import '../screens/routes/route_management_screen.dart';
+import '../widgets/common/main_shell.dart';
 
 class AppRouter {
   static final _rootKey = GlobalKey<NavigatorState>();
@@ -30,7 +32,7 @@ class AppRouter {
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
 
-      // Auth
+      // Auth (no shell)
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(
@@ -53,11 +55,19 @@ class AppRouter {
         },
       ),
 
-      // Main
-      GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+      // Main tabs — all share the persistent bottom nav via MainShell
+      ShellRoute(
+        builder: (context, state, child) => MainShell(child: child),
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+          GoRoute(path: '/routes', builder: (_, __) => const RouteManagementScreen()),
+          GoRoute(path: '/nominations', builder: (_, __) => const NominationsScreen()),
+          GoRoute(path: '/groups', builder: (_, __) => const GroupsScreen()),
+          GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
+        ],
+      ),
 
-      // Nominations
-      GoRoute(path: '/nominations', builder: (_, __) => const NominationsScreen()),
+      // Detail / modal screens — pushed on root navigator, no nav bar
       GoRoute(
         path: '/nominations/:groupId',
         builder: (_, state) {
@@ -65,26 +75,16 @@ class AppRouter {
           return NominationDetailScreen(nomination: nomination);
         },
       ),
-
-      // Groups
-      GoRoute(path: '/groups', builder: (_, __) => const GroupsScreen()),
       GoRoute(
         path: '/groups/:id',
         builder: (_, state) => GroupDetailScreen(groupId: state.pathParameters['id']!),
       ),
-
-      // Scan
       GoRoute(path: '/scan', builder: (_, __) => const ScanQrScreen()),
       GoRoute(
         path: '/scan/result',
         builder: (_, state) => ScanResultScreen(result: state.extra as ScanResult),
       ),
-
-      // Notifications
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
-
-      // Profile
-      GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
       GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
       GoRoute(path: '/profile/change-password', builder: (_, __) => const ChangePasswordScreen()),
     ],

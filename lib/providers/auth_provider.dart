@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/auth_models.dart';
@@ -43,6 +44,16 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String password,
     required String confirmPassword,
+    String? dateOfBirth,
+    String? educationLevel,
+    String? nationalIdNumber,
+    File? nationalIdImage,
+    String? licenseNumber,
+    String? licenseExpiry,
+    String? vehicleType,
+    String? plateNumber,
+    String? vehicleColor,
+    String? vehicleModel,
   }) async {
     _setLoading(true);
     _setError(null);
@@ -55,6 +66,16 @@ class AuthProvider extends ChangeNotifier {
       password: password,
       confirmPassword: confirmPassword,
       userType: 'driver',
+      dateOfBirth: dateOfBirth,
+      educationLevel: educationLevel,
+      nationalIdNumber: nationalIdNumber,
+      nationalIdImage: nationalIdImage,
+      licenseNumber: licenseNumber,
+      licenseExpiry: licenseExpiry,
+      vehicleType: vehicleType,
+      plateNumber: plateNumber,
+      vehicleColor: vehicleColor,
+      vehicleModel: vehicleModel,
     ));
     _setLoading(false);
     if (response.success) { notifyListeners(); return true; }

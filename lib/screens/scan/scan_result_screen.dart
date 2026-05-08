@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../models/group_model.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/app_button.dart';
 
 class ScanResultScreen extends StatelessWidget {
@@ -28,13 +29,13 @@ class ScanResultScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(context.hPad),
         child: Column(
           children: [
             // Success banner
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(context.hPad),
               decoration: BoxDecoration(
                 color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),

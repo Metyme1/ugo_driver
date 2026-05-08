@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'user_model.dart';
 
 class RegisterRequest {
@@ -7,12 +8,38 @@ class RegisterRequest {
   final String confirmPassword;
   final String userType;
 
+  // Personal info
+  final String? dateOfBirth;
+  final String? educationLevel;
+  final String? nationalIdNumber;
+  final File? nationalIdImage;
+
+  // License
+  final String? licenseNumber;
+  final String? licenseExpiry;
+
+  // Vehicle
+  final String? vehicleType;
+  final String? plateNumber;
+  final String? vehicleColor;
+  final String? vehicleModel;
+
   RegisterRequest({
     required this.fullName,
     required this.phone,
     required this.password,
     required this.confirmPassword,
     this.userType = 'driver',
+    this.dateOfBirth,
+    this.educationLevel,
+    this.nationalIdNumber,
+    this.nationalIdImage,
+    this.licenseNumber,
+    this.licenseExpiry,
+    this.vehicleType,
+    this.plateNumber,
+    this.vehicleColor,
+    this.vehicleModel,
   });
 
   Map<String, dynamic> toJson() => {
@@ -21,6 +48,15 @@ class RegisterRequest {
         'password': password,
         'confirm_password': confirmPassword,
         'user_type': userType,
+        if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
+        if (educationLevel != null) 'education_level': educationLevel,
+        if (nationalIdNumber != null) 'national_id_number': nationalIdNumber,
+        if (licenseNumber != null) 'license_number': licenseNumber,
+        if (licenseExpiry != null) 'license_expiry': licenseExpiry,
+        if (vehicleType != null) 'vehicle_type': vehicleType,
+        if (plateNumber != null) 'plate_number': plateNumber,
+        if (vehicleColor != null) 'vehicle_color': vehicleColor,
+        if (vehicleModel != null) 'vehicle_model': vehicleModel,
       };
 }
 

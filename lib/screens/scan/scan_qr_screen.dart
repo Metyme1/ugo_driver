@@ -77,13 +77,19 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
 
           // Overlay frame
           Center(
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.primaryLight, width: 3),
-                borderRadius: BorderRadius.circular(16),
-              ),
+            child: Builder(
+              builder: (context) {
+                final screenWidth = MediaQuery.of(context).size.width;
+                final frameSize = screenWidth < 360 ? 220.0 : 260.0;
+                return Container(
+                  width: frameSize,
+                  height: frameSize,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primaryLight, width: 3),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                );
+              },
             ),
           ),
 
@@ -118,28 +124,38 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     const size = 30.0;
     const thick = 4.0;
     final color = AppColors.primaryLight;
-    Widget corner(Alignment align, bool top, bool left) => Align(
-          alignment: align,
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final frameSize = screenWidth < 360 ? 220.0 : 260.0;
+    final frameLeft = (screenWidth - frameSize) / 2 - 2;
+    final frameTop = (screenHeight - frameSize) / 2 - 2;
+    final frameRight = frameLeft + frameSize;
+    final frameBottom = frameTop + frameSize;
+
+    Widget corner({required double left, required double top, required bool isTop, required bool isLeft}) =>
+        Positioned(
+          left: left,
+          top: top,
           child: Container(
             width: size,
             height: size,
             decoration: BoxDecoration(
               border: Border(
-                top: top ? BorderSide(color: color, width: thick) : BorderSide.none,
-                bottom: !top ? BorderSide(color: color, width: thick) : BorderSide.none,
-                left: left ? BorderSide(color: color, width: thick) : BorderSide.none,
-                right: !left ? BorderSide(color: color, width: thick) : BorderSide.none,
+                top: isTop ? BorderSide(color: color, width: thick) : BorderSide.none,
+                bottom: !isTop ? BorderSide(color: color, width: thick) : BorderSide.none,
+                left: isLeft ? BorderSide(color: color, width: thick) : BorderSide.none,
+                right: !isLeft ? BorderSide(color: color, width: thick) : BorderSide.none,
               ),
             ),
           ),
         );
 
     return [
-      Positioned(
-        left: (MediaQuery.of(context).size.width - 260) / 2 - 2,
-        top: (MediaQuery.of(context).size.height - 260) / 2 - 2,
-        child: corner(Alignment.topLeft, true, true),
-      ),
+      corner(left: frameLeft, top: frameTop, isTop: true, isLeft: true),
+      corner(left: frameRight - size, top: frameTop, isTop: true, isLeft: false),
+      corner(left: frameLeft, top: frameBottom - size, isTop: false, isLeft: true),
+      corner(left: frameRight - size, top: frameBottom - size, isTop: false, isLeft: false),
     ];
   }
 }

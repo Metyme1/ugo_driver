@@ -7,6 +7,21 @@ import 'api_service.dart';
 class NominationService {
   final ApiService _api = ApiService();
 
+  Future<ApiResponse<NominationDetail>> getNominationDetail(String groupId) async {
+    try {
+      final response = await _api.get(ApiConfig.nominationDetail(groupId));
+      if (response.statusCode == 200) {
+        final detail = NominationDetail.fromJson(
+          response.data['data'] as Map<String, dynamic>,
+        );
+        return ApiResponse.success(data: detail);
+      }
+      return ApiResponse.failure(message: 'Failed to fetch nomination detail');
+    } on DioException catch (e) {
+      return ApiResponse.failure(message: _api.handleError(e));
+    }
+  }
+
   Future<ApiResponse<List<DriverNomination>>> getMyNominations() async {
     try {
       final response = await _api.get(ApiConfig.myNominations);

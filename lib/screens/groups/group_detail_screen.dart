@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 import '../../models/group_model.dart';
 import '../../services/group_service.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -52,14 +53,14 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   Widget _buildBody() {
     final g = _group!;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(context.hPad),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(context.hPad),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryLight]),
               borderRadius: BorderRadius.circular(16),
@@ -67,10 +68,10 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.groups, color: Colors.white, size: 36),
+                Icon(Icons.groups, color: Colors.white, size: context.rv(28.0, 36.0, 44.0)),
                 const SizedBox(height: 12),
-                Text(g.name, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                Text(g.schoolName, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                Text(g.name, style: TextStyle(color: Colors.white, fontSize: context.fsHeadline, fontWeight: FontWeight.bold)),
+                Text(g.schoolName, style: TextStyle(color: Colors.white70, fontSize: context.fsBody)),
                 const SizedBox(height: 12),
                 Row(
                   children: [

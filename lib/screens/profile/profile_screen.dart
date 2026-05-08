@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/responsive.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,7 +17,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Profile')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(context.hPad),
         child: Column(
           children: [
             // Avatar
@@ -24,16 +25,16 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   CircleAvatar(
-                    radius: 44,
+                    radius: context.rv(36.0, 44.0, 52.0),
                     backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                     child: Text(
                       '${user?.firstName.isNotEmpty == true ? user!.firstName[0] : ''}${user?.lastName.isNotEmpty == true ? user!.lastName[0] : ''}',
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      style: TextStyle(fontSize: context.rv(26.0, 32.0, 38.0), fontWeight: FontWeight.bold, color: AppColors.primary),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(user?.fullName ?? '', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                  Text(user?.phone ?? '', style: const TextStyle(color: AppColors.textSecondary)),
+                  Text(user?.fullName ?? '', style: TextStyle(fontSize: context.fsHeadline, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  Text(user?.phone ?? '', style: TextStyle(color: AppColors.textSecondary, fontSize: context.fsBody)),
                   const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

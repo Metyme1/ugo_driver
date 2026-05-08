@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
 import '../../providers/notifications_provider.dart';
+import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -70,14 +71,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 44, height: 44,
+                              Builder(builder: (ctx) => Container(
+                                width: ctx.iconBox, height: ctx.iconBox,
                                 decoration: BoxDecoration(
                                   color: _iconColor(n.type).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Icon(_iconData(n.type), color: _iconColor(n.type), size: 22),
-                              ),
+                                child: Icon(_iconData(n.type), color: _iconColor(n.type), size: ctx.iconGlyph),
+                              )),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(

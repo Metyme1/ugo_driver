@@ -34,7 +34,7 @@ class UserModel {
       email: json['email'],
       userType: json['userType'] ?? 'driver',
       photo: json['photo'],
-      address: json['address'],
+      address: json['address'] is String ? json['address'] as String : null,
       status: json['status'] ?? 'active',
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
     );

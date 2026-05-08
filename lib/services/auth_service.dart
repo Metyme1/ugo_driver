@@ -10,7 +10,18 @@ class AuthService {
 
   Future<ApiResponse<RegisterResponse>> register(RegisterRequest request) async {
     try {
-      final response = await _api.post(ApiConfig.register, data: request.toJson());
+      final fields = request.toJson().map((k, v) => MapEntry(k, v.toString()));
+      FormData formData = FormData.fromMap(fields);
+      if (request.nationalIdImage != null) {
+        formData.files.add(MapEntry(
+          'national_id_image',
+          await MultipartFile.fromFile(
+            request.nationalIdImage!.path,
+            filename: 'national_id_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          ),
+        ));
+      }
+      final response = await _api.post(ApiConfig.register, data: formData);
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'] ?? response.data;
         return ApiResponse.success(
@@ -104,6 +115,8 @@ class AuthService {
       return ApiResponse.failure(message: 'Failed to get user');
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
+    } catch (e) {
+      return ApiResponse.failure(message: 'Failed to parse user data');
     }
   }
 
