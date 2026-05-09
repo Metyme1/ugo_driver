@@ -15,7 +15,12 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: const Text('My Profile'),
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(context.hPad),
         child: Column(
@@ -57,6 +62,19 @@ class ProfileScreen extends StatelessWidget {
                 _Tile(icon: Icons.phone_outlined, label: 'Phone', value: user?.phone ?? '-'),
                 _Tile(icon: Icons.email_outlined, label: 'Email', value: user?.email ?? '-'),
                 _Tile(icon: Icons.location_on_outlined, label: 'Address', value: user?.address ?? '-'),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Driver earnings
+            _Section(
+              title: 'Earnings',
+              items: [
+                _ActionTile(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'My Earnings',
+                  onTap: () => context.push('/billing'),
+                ),
               ],
             ),
             const SizedBox(height: 16),

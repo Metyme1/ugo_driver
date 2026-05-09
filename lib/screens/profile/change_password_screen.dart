@@ -48,7 +48,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Change Password')),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: const Text('Change Password'),
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(context.hPad),
         child: Column(

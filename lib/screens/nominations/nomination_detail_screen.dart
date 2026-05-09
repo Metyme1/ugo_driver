@@ -60,7 +60,12 @@ class _NominationDetailScreenState extends State<NominationDetailScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Nomination Detail')),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: const Text('Nomination Detail'),
+      ),
       body: _loading
           ? const LoadingWidget(message: 'Loading details...')
           : _error != null

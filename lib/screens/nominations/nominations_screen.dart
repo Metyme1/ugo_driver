@@ -40,6 +40,9 @@ class _NominationsScreenState extends State<NominationsScreen> with SingleTicker
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
         title: const Text('Nominations'),
         bottom: TabBar(
           controller: _tabController,

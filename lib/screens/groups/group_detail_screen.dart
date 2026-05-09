@@ -39,7 +39,12 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(_group?.name ?? 'Group Detail')),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: Text(_group?.name ?? 'Group Detail'),
+      ),
       body: _isLoading
           ? const LoadingWidget()
           : _error != null

@@ -43,6 +43,7 @@ class GroupModel {
 }
 
 class ScanResult {
+  final String purchaseId;
   final String parentName;
   final String parentPhone;
   final String? childName;
@@ -55,6 +56,7 @@ class ScanResult {
   final DateTime expiresAt;
 
   const ScanResult({
+    required this.purchaseId,
     required this.parentName,
     required this.parentPhone,
     this.childName,
@@ -69,6 +71,7 @@ class ScanResult {
 
   factory ScanResult.fromJson(Map<String, dynamic> json) {
     return ScanResult(
+      purchaseId: json['purchaseId'] ?? '',
       parentName: json['parentName'] ?? '',
       parentPhone: json['parentPhone'] ?? '',
       childName: json['childName'],

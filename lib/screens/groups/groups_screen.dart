@@ -28,7 +28,12 @@ class _GroupsScreenState extends State<GroupsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('My Groups')),
+      appBar: AppBar(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: const Text('My Groups'),
+      ),
       body: RefreshIndicator(
         onRefresh: () => context.read<GroupProvider>().loadMyGroups(),
         child: provider.isLoading

@@ -22,6 +22,7 @@ import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../screens/routes/route_management_screen.dart';
 import '../widgets/common/main_shell.dart';
+import '../screens/billing/driver_billing_screen.dart';
 
 class AppRouter {
   static final _rootKey = GlobalKey<NavigatorState>();
@@ -87,6 +88,7 @@ class AppRouter {
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
       GoRoute(path: '/profile/change-password', builder: (_, __) => const ChangePasswordScreen()),
+      GoRoute(path: '/billing', builder: (_, __) => const DriverBillingScreen()),
     ],
   );
 }

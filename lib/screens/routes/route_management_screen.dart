@@ -86,9 +86,10 @@ class _RouteManagementScreenState extends State<RouteManagementScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        title: const Text("Today's Routes", style: TextStyle(fontWeight: FontWeight.w600)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: const Text("Today's Routes"),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],

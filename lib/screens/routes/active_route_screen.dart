@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
 import '../../models/daily_trip_model.dart';
 import '../../services/api_service.dart';
@@ -159,10 +160,16 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        title: Text(widget.tripLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
+        ),
+        title: Text(widget.tripLabel),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () => context.push('/scan'),
+            tooltip: 'Scan Passenger QR',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadStudents,

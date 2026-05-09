@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://10.97.236.184:3001/api';
+  static const String baseUrl = 'http://192.168.1.7:3001/api';
 
   static const int connectionTimeout = 60000;
   static const int receiveTimeout = 60000;
@@ -25,9 +25,16 @@ class ApiConfig {
   static const String myNominations = '/driver/nominations';
   static String nominationDetail(String groupId) =>
       '/driver/nominations/$groupId';
-  static const String myGroups = '/groups/my';
+  static const String myGroups = '/driver/groups';
   static const String scanQr = '/ride-packages/scan';
+  static const String scanConfirm = '/ride-packages/scan/confirm';
 
   // Notifications
   static const String notifications = '/notifications';
+
+  // Driver billing
+  static const String billingSummary = '/driver/billing/summary';
+  static const String billingEarnings = '/driver/billing/earnings';
+  static const String billingPlatformSubs =
+      '/driver/billing/platform-subscriptions';
 }

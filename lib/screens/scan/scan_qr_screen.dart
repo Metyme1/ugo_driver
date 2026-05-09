@@ -32,7 +32,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
     setState(() => _isProcessing = true);
     _controller.stop();
 
-    final response = await _service.scanQr(rawValue);
+    final response = await _service.previewScan(rawValue);
 
     if (!mounted) return;
     setState(() => _isProcessing = false);

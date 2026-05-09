@@ -36,7 +36,7 @@ class GroupService {
     }
   }
 
-  Future<ApiResponse<ScanResult>> scanQr(String qrToken) async {
+  Future<ApiResponse<ScanResult>> previewScan(String qrToken) async {
     try {
       final response = await _api.post(ApiConfig.scanQr, data: {'qr_token': qrToken});
       if (response.statusCode == 200) {
@@ -46,6 +46,24 @@ class GroupService {
         );
       }
       return ApiResponse.failure(message: response.data['error']?['message'] ?? 'Scan failed');
+    } on DioException catch (e) {
+      return ApiResponse.failure(message: _api.handleError(e));
+    }
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> confirmScan(String purchaseId, int ridesCount) async {
+    try {
+      final response = await _api.post(ApiConfig.scanConfirm, data: {
+        'purchase_id': purchaseId,
+        'rides_count': ridesCount,
+      });
+      if (response.statusCode == 200) {
+        return ApiResponse.success(
+          data: Map<String, dynamic>.from(response.data['data']),
+          message: response.data['message'],
+        );
+      }
+      return ApiResponse.failure(message: response.data['error']?['message'] ?? 'Confirmation failed');
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
     }
