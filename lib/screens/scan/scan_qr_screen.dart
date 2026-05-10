@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../config/theme.dart';
-import '../../models/group_model.dart';
-import '../../models/university_scan_model.dart';
+
 import '../../services/group_service.dart';
 import '../../services/university_scan_service.dart';
 import '../../services/api_service.dart';
@@ -138,7 +137,8 @@ class _ScanQrScreenState extends State<ScanQrScreen>
         ]),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
         ],
       ),
     );
@@ -163,13 +163,15 @@ class _ScanQrScreenState extends State<ScanQrScreen>
               builder: (context) {
                 final screenWidth = MediaQuery.of(context).size.width;
                 final frameSize = screenWidth < 360 ? 220.0 : 260.0;
-                final frameColor = _isLocked ? Colors.greenAccent : AppColors.primaryLight;
+                final frameColor =
+                    _isLocked ? Colors.greenAccent : AppColors.primaryLight;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: frameSize,
                   height: frameSize,
                   decoration: BoxDecoration(
-                    border: Border.all(color: frameColor, width: _isLocked ? 4 : 3),
+                    border:
+                        Border.all(color: frameColor, width: _isLocked ? 4 : 3),
                     borderRadius: BorderRadius.circular(16),
                   ),
                 );
@@ -199,9 +201,11 @@ class _ScanQrScreenState extends State<ScanQrScreen>
                   ),
                 if (_isProcessing) ...[
                   const SizedBox(height: 16),
-                  const CircularProgressIndicator(color: AppColors.primaryLight),
+                  const CircularProgressIndicator(
+                      color: AppColors.primaryLight),
                   const SizedBox(height: 8),
-                  const Text('Processing...', style: TextStyle(color: Colors.white70)),
+                  const Text('Processing...',
+                      style: TextStyle(color: Colors.white70)),
                 ],
               ],
             ),
@@ -227,7 +231,11 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     final frameRight = frameLeft + frameSize;
     final frameBottom = frameTop + frameSize;
 
-    Widget corner({required double left, required double top, required bool isTop, required bool isLeft}) =>
+    Widget corner(
+            {required double left,
+            required double top,
+            required bool isTop,
+            required bool isLeft}) =>
         Positioned(
           left: left,
           top: top,
@@ -236,10 +244,18 @@ class _ScanQrScreenState extends State<ScanQrScreen>
             height: size,
             decoration: BoxDecoration(
               border: Border(
-                top: isTop ? const BorderSide(color: color, width: thick) : BorderSide.none,
-                bottom: !isTop ? const BorderSide(color: color, width: thick) : BorderSide.none,
-                left: isLeft ? const BorderSide(color: color, width: thick) : BorderSide.none,
-                right: !isLeft ? const BorderSide(color: color, width: thick) : BorderSide.none,
+                top: isTop
+                    ? const BorderSide(color: color, width: thick)
+                    : BorderSide.none,
+                bottom: !isTop
+                    ? const BorderSide(color: color, width: thick)
+                    : BorderSide.none,
+                left: isLeft
+                    ? const BorderSide(color: color, width: thick)
+                    : BorderSide.none,
+                right: !isLeft
+                    ? const BorderSide(color: color, width: thick)
+                    : BorderSide.none,
               ),
             ),
           ),
@@ -247,9 +263,15 @@ class _ScanQrScreenState extends State<ScanQrScreen>
 
     return [
       corner(left: frameLeft, top: frameTop, isTop: true, isLeft: true),
-      corner(left: frameRight - size, top: frameTop, isTop: true, isLeft: false),
-      corner(left: frameLeft, top: frameBottom - size, isTop: false, isLeft: true),
-      corner(left: frameRight - size, top: frameBottom - size, isTop: false, isLeft: false),
+      corner(
+          left: frameRight - size, top: frameTop, isTop: true, isLeft: false),
+      corner(
+          left: frameLeft, top: frameBottom - size, isTop: false, isLeft: true),
+      corner(
+          left: frameRight - size,
+          top: frameBottom - size,
+          isTop: false,
+          isLeft: false),
     ];
   }
 }
