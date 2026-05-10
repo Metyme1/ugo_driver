@@ -16,6 +16,8 @@ import '../screens/groups/groups_screen.dart';
 import '../screens/groups/group_detail_screen.dart';
 import '../screens/scan/scan_qr_screen.dart';
 import '../screens/scan/scan_result_screen.dart';
+import '../screens/scan/university_scan_result_screen.dart';
+import '../models/university_scan_model.dart';
 import '../screens/notifications/notifications_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
@@ -84,6 +86,12 @@ class AppRouter {
       GoRoute(
         path: '/scan/result',
         builder: (_, state) => ScanResultScreen(result: state.extra as ScanResult),
+      ),
+      GoRoute(
+        path: '/scan/university-result',
+        builder: (_, state) => UniversityScanResultScreen(
+          preview: state.extra as UniversityBookingPreview,
+        ),
       ),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
       GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),

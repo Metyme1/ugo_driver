@@ -525,11 +525,36 @@ class _EarningCard extends StatelessWidget {
     'afternoon_to_home':   'Afternoon → Home  16:30',
   };
 
+  static Color _typeColor(String type) {
+    switch (type) {
+      case 'trip_earning':        return AppColors.primary;
+      case 'university_ride':     return const Color(0xFF7C3AED);
+      default:                    return AppColors.secondary;
+    }
+  }
+
+  static IconData _typeIcon(String type) {
+    switch (type) {
+      case 'trip_earning':        return Icons.directions_car_outlined;
+      case 'university_ride':     return Icons.school_outlined;
+      default:                    return Icons.receipt_outlined;
+    }
+  }
+
+  static String _typeTag(String type) {
+    switch (type) {
+      case 'trip_earning':        return 'TRIP';
+      case 'university_ride':     return 'UNI';
+      default:                    return 'SUB';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final color = _typeColor(earning.type);
+    final icon  = _typeIcon(earning.type);
     final isTrip = earning.type == 'trip_earning';
-    final color  = isTrip ? AppColors.primary : AppColors.secondary;
-    final icon   = isTrip ? Icons.directions_car_outlined : Icons.receipt_outlined;
+    final isUni  = earning.type == 'university_ride';
 
     return Container(
       decoration: BoxDecoration(
@@ -557,7 +582,9 @@ class _EarningCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        earning.groupName ?? 'Group',
+                        isUni
+                            ? (earning.description ?? 'University Ride')
+                            : (earning.groupName ?? 'Group'),
                         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -570,7 +597,7 @@ class _EarningCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        isTrip ? 'TRIP' : 'SUB',
+                        _typeTag(earning.type),
                         style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -578,9 +605,11 @@ class _EarningCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  isTrip
-                      ? (_routeLabels[earning.routeType] ?? earning.routeType ?? '')
-                      : 'Subscription verified',
+                  isUni
+                      ? 'Boarding confirmed'
+                      : isTrip
+                          ? (_routeLabels[earning.routeType] ?? earning.routeType ?? '')
+                          : 'Subscription verified',
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 if (earning.earnedAt != null) ...[
