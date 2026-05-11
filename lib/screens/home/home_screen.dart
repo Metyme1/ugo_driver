@@ -13,6 +13,16 @@ import '../../providers/driver_billing_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/trip_service.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Supplemental card colors not in AppColors
+// ─────────────────────────────────────────────────────────────────────────────
+const _kEmerald = Color(0xFF065F46);
+const _kRust = Color(0xFF7C2D12);
+const _kSlate = Color(0xFF1E293B);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HomeScreen
+// ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -63,13 +73,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
-    final nominationProvider = context.watch<NominationProvider>();
+    final nominations = context.watch<NominationProvider>();
     context.watch<GroupProvider>();
-    final notifProvider = context.watch<NotificationsProvider>();
-    final billingProvider = context.watch<DriverBillingProvider>();
+    final notifs = context.watch<NotificationsProvider>();
+    final billing = context.watch<DriverBillingProvider>();
 
     final activeTrips = _todayTrips.where((t) => t.isActive).length;
-    final netEarnings = billingProvider.summary?.netEarnings ?? 0.0;
+    final netEarnings = billing.summary?.netEarnings ?? 0.0;
     final earningsStr = NumberFormat('#,##0').format(netEarnings);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -78,176 +88,207 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.background,
         body: RefreshIndicator(
           onRefresh: _loadAll,
-          displacement: 100,
+          displacement: 80,
+          color: AppColors.primary,
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // ── Gradient header ──────────────────────────────────────────
+              // ── Top bar ──────────────────────────────────────────────────
               SliverToBoxAdapter(
-                child: _HomeHeader(
+                child: _TopBar(
                   greeting: _greeting,
                   firstName: user?.firstName,
-                  unreadCount: notifProvider.unreadCount,
+                  unreadCount: notifs.unreadCount,
                 ),
               ),
 
               // ── Stat cards ───────────────────────────────────────────────
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 sliver: SliverToBoxAdapter(
-                  child: Transform.translate(
-                    offset: const Offset(0, -24),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            _QuickStatCard(
-                              label: 'Net Earnings',
-                              sublabel: 'ETB · This month',
-                              value: earningsStr,
-                              icon: Icons.account_balance_wallet_rounded,
-                              gradientColors: const [Color(0xFF0D47A1), Color(0xFF1E88E5)],
-                              onTap: () => context.push('/billing'),
-                            ),
-                            const SizedBox(width: 12),
-                            _QuickStatCard(
-                              label: "Today's Trips",
-                              sublabel: activeTrips > 0 ? '$activeTrips active now' : 'No active trips',
-                              value: _todayTrips.length.toString(),
-                              icon: Icons.directions_car_rounded,
-                              gradientColors: const [Color(0xFF059669), Color(0xFF34D399)],
-                              onTap: () => context.go('/routes'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            _QuickStatCard(
-                              label: 'Nominations',
-                              sublabel: nominationProvider.pendingCount > 0 ? 'Tap to respond' : 'No pending',
-                              value: nominationProvider.pendingCount.toString(),
-                              icon: Icons.pending_actions_rounded,
-                              gradientColors: nominationProvider.pendingCount > 0
-                                  ? const [Color(0xFFEA580C), Color(0xFFFB923C)]
-                                  : const [Color(0xFF475569), Color(0xFF64748B)],
-                              onTap: () => context.go('/nominations'),
-                            ),
-                            const SizedBox(width: 12),
-                            _QuickStatCard(
-                              label: 'Alerts',
-                              sublabel: notifProvider.unreadCount > 0 ? 'Tap to read' : 'All caught up',
-                              value: notifProvider.unreadCount.toString(),
-                              icon: Icons.notifications_rounded,
-                              gradientColors: notifProvider.unreadCount > 0
-                                  ? const [Color(0xFF0C4A6E), Color(0xFF0284C7)]
-                                  : const [Color(0xFF475569), Color(0xFF64748B)],
-                              onTap: () => context.push('/notifications'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          _StatCard(
+                            label: 'Net Earnings',
+                            sub: 'ETB · This month',
+                            value: earningsStr,
+                            icon: Icons.account_balance_wallet_rounded,
+                            color: AppColors.primaryDark,
+                            onTap: () => context.push('/billing'),
+                          ),
+                          const SizedBox(width: 10),
+                          _StatCard(
+                            label: "Today's Trips",
+                            sub: activeTrips > 0
+                                ? '$activeTrips active now'
+                                : 'No active trips',
+                            value: _todayTrips.length.toString(),
+                            icon: Icons.directions_car_rounded,
+                            color: _kEmerald,
+                            onTap: () => context.go('/routes'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _StatCard(
+                            label: 'Nominations',
+                            sub: nominations.pendingCount > 0
+                                ? 'Tap to respond'
+                                : 'No pending',
+                            value: nominations.pendingCount.toString(),
+                            icon: Icons.pending_actions_rounded,
+                            color:
+                                nominations.pendingCount > 0 ? _kRust : _kSlate,
+                            onTap: () => context.go('/nominations'),
+                          ),
+                          const SizedBox(width: 10),
+                          _StatCard(
+                            label: 'Alerts',
+                            sub: notifs.unreadCount > 0
+                                ? 'Tap to read'
+                                : 'All caught up',
+                            value: notifs.unreadCount.toString(),
+                            icon: Icons.notifications_rounded,
+                            color: notifs.unreadCount > 0
+                                ? AppColors.primary
+                                : _kSlate,
+                            onTap: () => context.push('/notifications'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              // ── Today's Routes ────────────────────────────────────────────
+              // ── Today's Routes ───────────────────────────────────────────
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                 sliver: SliverToBoxAdapter(
-                  child: Transform.translate(
-                    offset: const Offset(0, -12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Section header
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(7),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(Icons.route_rounded, color: AppColors.primary, size: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Section header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
+                                child: const Icon(
+                                  Icons.route_rounded,
+                                  color: AppColors.primary,
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                "Today's Routes",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              if (_todayTrips.isNotEmpty) ...[
                                 const SizedBox(width: 8),
-                                const Text(
-                                  "Today's Routes",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: AppColors.textPrimary,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '${_todayTrips.length}',
+                                    style: const TextStyle(
+                                      color: AppColors.textOnPrimary,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
-                                if (_todayTrips.isNotEmpty) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '${_todayTrips.length}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ],
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () => context.go('/routes'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              textStyle: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            TextButton(
+                            child: const Text('View all'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Trip list
+                      if (_loadingTrips)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(28),
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        )
+                      else if (_todayTrips.isEmpty)
+                        const _EmptyCard(
+                          icon: Icons.route_outlined,
+                          message:
+                              'No routes scheduled for today.\nCheck back after your groups are set up.',
+                        )
+                      else ...[
+                        ..._todayTrips.take(2).map(
+                              (trip) => _TripTile(
+                                trip: trip,
+                                onTap: () => context.go('/routes'),
+                              ),
+                            ),
+                        if (_todayTrips.length > 2) ...[
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
                               onPressed: () => context.go('/routes'),
-                              child: const Text('View All'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        // Routes list
-                        if (_loadingTrips)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(28),
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        else if (_todayTrips.isEmpty)
-                          const _EmptyCard(
-                            icon: Icons.route_outlined,
-                            message: 'No routes scheduled for today.\nCheck back after your groups are set up.',
-                          )
-                        else ...[
-                          ..._todayTrips.take(2).map(
-                                (trip) => _TripTile(
-                                  trip: trip,
-                                  onTap: () => context.go('/routes'),
-                                ),
+                              icon: const Icon(Icons.arrow_forward_rounded,
+                                  size: 15),
+                              label: Text(
+                                'View ${_todayTrips.length - 2} more route'
+                                '${_todayTrips.length - 2 > 1 ? 's' : ''}',
                               ),
-                          if (_todayTrips.length > 2)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: TextButton.icon(
-                                  onPressed: () => context.go('/routes'),
-                                  icon: const Icon(Icons.arrow_forward_rounded, size: 16),
-                                  label: Text(
-                                    'View ${_todayTrips.length - 2} more route${_todayTrips.length - 2 > 1 ? 's' : ''}',
-                                  ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(
+                                    color: AppColors.border, width: 0.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
+                          ),
                         ],
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -259,14 +300,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Home header ───────────────────────────────────────────────────────────────
-
-class _HomeHeader extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// _TopBar — uses AppColors.headerGradient, no overlap with cards below
+// ─────────────────────────────────────────────────────────────────────────────
+class _TopBar extends StatelessWidget {
   final String greeting;
   final String? firstName;
   final int unreadCount;
 
-  const _HomeHeader({
+  const _TopBar({
     required this.greeting,
     required this.firstName,
     required this.unreadCount,
@@ -277,30 +319,31 @@ class _HomeHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: AppColors.headerGradient,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
           child: Row(
             children: [
               // Avatar
               Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.18),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                  color: Colors.white.withValues(alpha: 0.15),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
                 ),
-                child: const Icon(Icons.person_rounded, color: Colors.white, size: 22),
+                child: const Icon(Icons.person_rounded,
+                    color: Colors.white, size: 22),
               ),
               const SizedBox(width: 12),
-              // Greeting + name + date
+
+              // Greeting block
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +384,7 @@ class _HomeHeader extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
                         height: 1.2,
                       ),
                     ),
@@ -355,7 +398,8 @@ class _HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              // Notification button
+
+              // Notification bell
               GestureDetector(
                 onTap: () => context.push('/notifications'),
                 child: Stack(
@@ -365,21 +409,25 @@ class _HomeHeader extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: Colors.white.withValues(alpha: 0.12),
                       ),
-                      child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
+                      child: const Icon(Icons.notifications_outlined,
+                          color: Colors.white, size: 20),
                     ),
                     if (unreadCount > 0)
                       Positioned(
                         right: 0,
                         top: 0,
                         child: Container(
-                          width: 17,
-                          height: 17,
+                          width: 16,
+                          height: 16,
                           decoration: BoxDecoration(
-                            color: AppColors.accent,
+                            color: AppColors.error,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            border: Border.all(
+                              color: AppColors.gradientEnd,
+                              width: 1.5,
+                            ),
                           ),
                           child: Center(
                             child: Text(
@@ -404,22 +452,23 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-// ── Quick stat card ───────────────────────────────────────────────────────────
-
-class _QuickStatCard extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// _StatCard
+// ─────────────────────────────────────────────────────────────────────────────
+class _StatCard extends StatelessWidget {
   final String label;
-  final String sublabel;
+  final String sub;
   final String value;
   final IconData icon;
-  final List<Color> gradientColors;
+  final Color color;
   final VoidCallback onTap;
 
-  const _QuickStatCard({
+  const _StatCard({
     required this.label,
-    required this.sublabel,
+    required this.sub,
     required this.value,
     required this.icon,
-    required this.gradientColors,
+    required this.color,
     required this.onTap,
   });
 
@@ -429,21 +478,10 @@ class _QuickStatCard extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: gradientColors,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: gradientColors[0].withValues(alpha: 0.4),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: color,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,17 +490,18 @@ class _QuickStatCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(11),
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(icon, color: Colors.white, size: 18),
                   ),
                   Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white.withValues(alpha: 0.55),
-                    size: 11,
+                    Icons.chevron_right_rounded,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    size: 16,
                   ),
                 ],
               ),
@@ -471,26 +510,26 @@ class _QuickStatCard extends StatelessWidget {
                 value,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
                   height: 1,
                 ),
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
-                sublabel,
+                sub,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.65),
-                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontSize: 10,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -503,8 +542,9 @@ class _QuickStatCard extends StatelessWidget {
   }
 }
 
-// ── Trip tile ─────────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────────────────────
+// _TripTile
+// ─────────────────────────────────────────────────────────────────────────────
 class _TripTile extends StatelessWidget {
   final DriverDailyTrip trip;
   final VoidCallback onTap;
@@ -518,7 +558,7 @@ class _TripTile extends StatelessWidget {
 
     if (trip.isCompleted) {
       statusColor = AppColors.success;
-      statusLabel = 'Completed';
+      statusLabel = 'Done';
       statusIcon = Icons.check_circle_rounded;
     } else if (trip.isActive) {
       statusColor = AppColors.warning;
@@ -530,36 +570,29 @@ class _TripTile extends StatelessWidget {
       statusIcon = Icons.schedule_rounded;
     }
 
+    final tripIcon =
+        trip.isToSchool ? Icons.school_rounded : Icons.home_rounded;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 0.5),
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.12),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                trip.isToSchool ? Icons.school_rounded : Icons.home_rounded,
-                color: statusColor,
-                size: 22,
-              ),
+              child: Icon(tripIcon, color: statusColor, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -568,18 +601,25 @@ class _TripTile extends StatelessWidget {
                 children: [
                   Text(
                     trip.routeLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '${trip.groupName} · ${trip.scheduledTime}',
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
@@ -587,12 +627,12 @@ class _TripTile extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(statusIcon, size: 11, color: statusColor),
+                  Icon(statusIcon, size: 10, color: statusColor),
                   const SizedBox(width: 4),
                   Text(
                     statusLabel,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: statusColor,
                       fontWeight: FontWeight.w600,
                     ),
@@ -600,8 +640,9 @@ class _TripTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 6),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary, size: 18),
+            const SizedBox(width: 4),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.textSecondary, size: 18),
           ],
         ),
       ),
@@ -609,8 +650,9 @@ class _TripTile extends StatelessWidget {
   }
 }
 
-// ── Empty card ────────────────────────────────────────────────────────────────
-
+// ─────────────────────────────────────────────────────────────────────────────
+// _EmptyCard
+// ─────────────────────────────────────────────────────────────────────────────
 class _EmptyCard extends StatelessWidget {
   final IconData icon;
   final String message;
@@ -622,30 +664,30 @@ class _EmptyCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-          ),
-        ],
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
+              color: AppColors.primary.withValues(alpha: 0.07),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 36, color: AppColors.primary.withValues(alpha: 0.4)),
+            child: Icon(icon,
+                size: 32, color: AppColors.primary.withValues(alpha: 0.35)),
           ),
           const SizedBox(height: 14),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textSecondary, height: 1.6, fontSize: 13),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              height: 1.6,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
