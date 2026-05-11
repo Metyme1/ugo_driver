@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.1.9:3001/api';
+  static const String baseUrl = 'https://ugo-admin-cdi4.onrender.com/api';
 
   static const int connectionTimeout = 60000;
   static const int receiveTimeout = 60000;
@@ -28,6 +28,9 @@ class ApiConfig {
   static const String myGroups = '/driver/groups';
   static const String scanQr = '/ride-packages/scan';
   static const String scanConfirm = '/ride-packages/scan/confirm';
+
+  static const String nfcScan = '/nfc/scan';
+  static const String nfcConfirm = '/nfc/confirm';
 
   // Notifications
   static const String notifications = '/notifications';

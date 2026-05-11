@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/responsive.dart';
-import '../../widgets/common/ugo_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,14 +12,16 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
     _checkAuth();
@@ -58,7 +59,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              UgoLogo(size: context.rv(100.0, 120.0, 140.0)),
+              Image.asset(
+                'assets/icon/logo.png',
+                width: context.rv(72.0, 88.0, 96.0),
+                height: context.rv(72.0, 88.0, 96.0),
+                fit: BoxFit.contain,
+              ),
               const SizedBox(height: 20),
               Text(
                 'UGO Driver',

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/common/ugo_logo.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -67,7 +66,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       SizedBox(height: isSmall ? 40.0 : 60.0),
 
-                      UgoLogo(size: isSmall ? 72.0 : 88.0, onDark: false),
+                      Image.asset(
+                        'assets/icon/logo.png',
+                        width: isSmall ? 72.0 : 88.0,
+                        height: isSmall ? 72.0 : 88.0,
+                        fit: BoxFit.contain,
+                      ),
                       const SizedBox(height: 20),
 
                       Text(
@@ -113,7 +117,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _errorBox(auth.errorMessage!),
                                   const SizedBox(height: 16),
                                 ],
-
                                 _buildLabel('Phone Number'),
                                 const SizedBox(height: 8),
                                 _buildTextField(
@@ -121,13 +124,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hint: '09XXXXXXXX',
                                   prefixIcon: Icons.phone_outlined,
                                   keyboardType: TextInputType.phone,
-                                  validator: (v) => (v == null || v.trim().isEmpty)
-                                      ? 'Phone is required'
-                                      : null,
+                                  validator: (v) =>
+                                      (v == null || v.trim().isEmpty)
+                                          ? 'Phone is required'
+                                          : null,
                                 ),
-
                                 const SizedBox(height: 20),
-
                                 _buildLabel('Password'),
                                 const SizedBox(height: 8),
                                 _buildTextField(
@@ -143,20 +145,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: AppColors.textHint,
                                       size: 20,
                                     ),
-                                    onPressed: () => setState(
-                                        () => _obscurePassword = !_obscurePassword),
+                                    onPressed: () => setState(() =>
+                                        _obscurePassword = !_obscurePassword),
                                   ),
                                   validator: (v) => (v == null || v.isEmpty)
                                       ? 'Password is required'
                                       : null,
                                 ),
-
                                 const SizedBox(height: 12),
-
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: GestureDetector(
-                                    onTap: () => context.push('/forgot-password'),
+                                    onTap: () =>
+                                        context.push('/forgot-password'),
                                     child: const Text(
                                       'Forgot password?',
                                       style: TextStyle(
@@ -167,9 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-
                                 const SizedBox(height: 32),
-
                                 SizedBox(
                                   width: double.infinity,
                                   height: 56,
@@ -178,7 +177,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       foregroundColor: AppColors.textOnPrimary,
-                                      disabledBackgroundColor: AppColors.primaryLight,
+                                      disabledBackgroundColor:
+                                          AppColors.primaryLight,
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(28),
@@ -202,9 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ),
                                   ),
                                 ),
-
                                 const SizedBox(height: 20),
-
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
