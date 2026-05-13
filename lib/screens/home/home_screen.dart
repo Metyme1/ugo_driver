@@ -126,7 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : 'No active trips',
                             value: _todayTrips.length.toString(),
                             icon: Icons.directions_car_rounded,
-                            color: _kEmerald,
+                            color: AppColors.primaryLight,
                             onTap: () => context.go('/routes'),
                           ),
                         ],
