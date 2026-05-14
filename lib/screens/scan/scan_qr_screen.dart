@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../config/theme.dart';
 import '../../services/group_service.dart';
 import '../../services/university_scan_service.dart';
 import '../../services/nfc_scan_service.dart';
+import '../../services/offline_qr_service.dart';
 import '../../services/api_service.dart';
 
 class ScanQrScreen extends StatefulWidget {
@@ -21,10 +23,12 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   final _uniService = UniversityScanService(ApiService());
   final _nfcService = NfcScanService();
   late final MobileScannerController _controller;
+  StreamSubscription<List<ConnectivityResult>>? _connectSub;
 
   bool _isProcessing = false;
   bool _nfcMode = false;
   bool _nfcWaiting = false; // NFC session is active, waiting for tap
+  bool _isOffline = false;
 
   // QR debounce state
   Timer? _debounce;
@@ -36,6 +40,36 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     super.initState();
     _controller = MobileScannerController(autoStart: true);
     WidgetsBinding.instance.addObserver(this);
+    // Defer until after the first frame so the camera surface attaches cleanly
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initConnectivity());
+  }
+
+  Future<void> _initConnectivity() async {
+    try {
+      final results = await Connectivity().checkConnectivity();
+      _updateOfflineState(results);
+      _connectSub = Connectivity().onConnectivityChanged.listen((results) {
+        final wasOffline = _isOffline;
+        _updateOfflineState(results);
+        if (wasOffline && !_isOffline) _syncOfflineQueue();
+      });
+    } catch (_) {
+      // connectivity unavailable — stay online-assumed, camera unaffected
+    }
+  }
+
+  void _updateOfflineState(List<ConnectivityResult> results) {
+    final offline = results.every((r) => r == ConnectivityResult.none);
+    if (mounted) setState(() => _isOffline = offline);
+  }
+
+  Future<void> _syncOfflineQueue() async {
+    final count = await _groupService.syncOfflineScans();
+    if (count > 0 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Synced $count offline ride${count == 1 ? '' : 's'}'), backgroundColor: AppColors.success),
+      );
+    }
   }
 
   @override
@@ -57,6 +91,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _debounce?.cancel();
+    _connectSub?.cancel();
     _controller.dispose();
     if (_nfcWaiting) _nfcService.stopSession();
     super.dispose();
@@ -140,6 +175,19 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   }
 
   Future<void> _handlePackageScan(String rawValue) async {
+    if (_isOffline) {
+      final purchaseId = OfflineQrService.verify(rawValue);
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      if (purchaseId != null) {
+        context.pushReplacement('/scan/offline-result', extra: purchaseId);
+      } else {
+        _showError('Invalid or expired QR code (offline)');
+        _controller.start();
+      }
+      return;
+    }
+
     final response = await _groupService.previewScan(rawValue);
     if (!mounted) return;
     setState(() => _isProcessing = false);
@@ -288,7 +336,28 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   Widget _buildQrView() {
     return Stack(
       children: [
-        MobileScanner(controller: _controller, onDetect: _onDetect),
+        MobileScanner(
+          controller: _controller,
+          onDetect: _onDetect,
+          errorBuilder: (context, error, child) => ColoredBox(
+            color: Colors.black,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.camera_alt_outlined, color: Colors.white54, size: 64),
+                  const SizedBox(height: 16),
+                  const Text('Camera failed to start', style: TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => _controller.start(),
+                    child: const Text('Tap to retry', style: TextStyle(color: AppColors.primaryLight)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
         Center(
           child: Builder(builder: (context) {
             final screenWidth = MediaQuery.of(context).size.width;
@@ -310,6 +379,20 @@ class _ScanQrScreenState extends State<ScanQrScreen>
           left: 0,
           right: 0,
           child: Column(children: [
+            if (_isOffline)
+              Container(
+                margin: const EdgeInsets.only(bottom: 10, left: 32, right: 32),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(20)),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.wifi_off, color: Colors.white, size: 14),
+                    SizedBox(width: 6),
+                    Text('Offline — local QR verification', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
             if (!_isProcessing)
               Text(
                 _isLocked ? 'QR code detected…' : _pendingValue != null ? 'Hold steady…' : 'Point camera at the passenger\'s QR code',

@@ -16,6 +16,7 @@ import '../screens/groups/groups_screen.dart';
 import '../screens/groups/group_detail_screen.dart';
 import '../screens/scan/scan_qr_screen.dart';
 import '../screens/scan/scan_result_screen.dart';
+import '../screens/scan/offline_scan_result_screen.dart';
 import '../screens/scan/university_scan_result_screen.dart';
 import '../models/university_scan_model.dart';
 import '../screens/notifications/notifications_screen.dart';
@@ -86,6 +87,10 @@ class AppRouter {
       GoRoute(
         path: '/scan/result',
         builder: (_, state) => ScanResultScreen(result: state.extra as ScanResult),
+      ),
+      GoRoute(
+        path: '/scan/offline-result',
+        builder: (_, state) => OfflineScanResultScreen(purchaseId: state.extra as String),
       ),
       GoRoute(
         path: '/scan/university-result',

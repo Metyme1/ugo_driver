@@ -3,6 +3,7 @@ import '../config/api_config.dart';
 import '../models/api_response.dart';
 import '../models/group_model.dart';
 import 'api_service.dart';
+import 'offline_qr_service.dart';
 
 class GroupService {
   final ApiService _api = ApiService();
@@ -67,5 +68,22 @@ class GroupService {
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
     }
+  }
+
+  /// Syncs queued offline scans to the server. Returns count of successfully synced items.
+  Future<int> syncOfflineScans() async {
+    final queue = await OfflineQrService.getQueue();
+    if (queue.isEmpty) return 0;
+
+    final synced = <String>[];
+    for (final item in queue) {
+      try {
+        final resp = await confirmScan(item['purchaseId'] as String, item['ridesCount'] as int);
+        if (resp.success) synced.add(item['purchaseId'] as String);
+      } catch (_) {}
+    }
+
+    if (synced.isNotEmpty) await OfflineQrService.removeFromQueue(synced);
+    return synced.length;
   }
 }

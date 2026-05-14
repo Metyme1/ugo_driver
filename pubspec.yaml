@@ -37,6 +37,10 @@ dependencies:
   # NFC
   nfc_manager: ^3.3.0
 
+  # Offline QR
+  connectivity_plus: ^6.1.4
+  crypto: ^3.0.6
+
   # Icons
   cupertino_icons: ^1.0.8
   rename: ^3.1.0
