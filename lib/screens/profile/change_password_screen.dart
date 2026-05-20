@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -13,39 +15,135 @@ class ChangePasswordScreen extends StatefulWidget {
   State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final _currentCtrl = TextEditingController();
-  final _newCtrl     = TextEditingController();
-  final _confirmCtrl = TextEditingController();
-  bool _obscure = true;
+class _ChangePasswordScreenState extends State<ChangePasswordScreen>
+    with SingleTickerProviderStateMixin {
+  // ── Step 1 controllers ───────────────────────────────────────────────────
+  final _currentCtrl  = TextEditingController();
+  final _newCtrl      = TextEditingController();
+  final _confirmCtrl  = TextEditingController();
+  bool _obscureCurrent = true;
+  bool _obscureNew     = true;
+  bool _obscureConfirm = true;
+
+  // ── Step 2 OTP ───────────────────────────────────────────────────────────
+  static const int _otpLen = 6;
+  final _otpControllers = List.generate(6, (_) => TextEditingController());
+  final _otpFocusNodes  = List.generate(6, (_) => FocusNode());
+  int _resendSeconds = 60;
+  bool _canResend    = false;
+  Timer? _timer;
+
+  // ── State ────────────────────────────────────────────────────────────────
+  int _step = 1; // 1 = enter passwords, 2 = enter OTP
+  late AnimationController _anim;
+  late Animation<double> _fade;
+
+  String get _otp => _otpControllers.map((c) => c.text).join();
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    _fade = CurvedAnimation(parent: _anim, curve: Curves.easeIn);
+    _anim.forward();
+  }
 
   @override
   void dispose() {
+    _anim.dispose();
     _currentCtrl.dispose();
     _newCtrl.dispose();
     _confirmCtrl.dispose();
+    for (final c in _otpControllers) { c.dispose(); }
+    for (final f in _otpFocusNodes)  { f.dispose(); }
+    _timer?.cancel();
     super.dispose();
   }
 
-  Future<void> _save() async {
-    if (_newCtrl.text.length < 6) {
-      _snack('New password must be at least 6 characters', AppColors.error);
+  // ── Step 1 ───────────────────────────────────────────────────────────────
+
+  Future<void> _sendOtp() async {
+    if (_newCtrl.text.length < 8) {
+      _snack('New password must be at least 8 characters', AppColors.error);
       return;
     }
     if (_newCtrl.text != _confirmCtrl.text) {
       _snack('Passwords do not match', AppColors.error);
       return;
     }
-    final auth = context.read<AuthProvider>();
-    final success = await auth.changePassword(
-      currentPassword: _currentCtrl.text,
-      newPassword: _newCtrl.text,
-      confirmPassword: _confirmCtrl.text,
+    context.read<AuthProvider>().clearError();
+    final success = await context.read<AuthProvider>().requestChangePasswordOtp(
+      currentPassword:  _currentCtrl.text,
+      newPassword:      _newCtrl.text,
+      confirmPassword:  _confirmCtrl.text,
     );
-    if (success && mounted) {
+    if (!mounted) return;
+    if (success) _goToStep2();
+  }
+
+  void _goToStep2() {
+    setState(() => _step = 2);
+    _anim.reset();
+    _anim.forward();
+    _startTimer();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _otpFocusNodes[0].requestFocus());
+  }
+
+  // ── Step 2 ───────────────────────────────────────────────────────────────
+
+  void _startTimer() {
+    _resendSeconds = 60;
+    _canResend = false;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() {
+        if (_resendSeconds > 0) { _resendSeconds--; }
+        else { _canResend = true; t.cancel(); }
+      });
+    });
+  }
+
+  void _clearOtp() {
+    for (final c in _otpControllers) { c.clear(); }
+    _otpFocusNodes[0].requestFocus();
+  }
+
+  void _onOtpChanged(String value, int index) {
+    if (value.length == 1 && index < _otpLen - 1) _otpFocusNodes[index + 1].requestFocus();
+    setState(() {});
+    if (_otp.length == _otpLen) _confirmOtp();
+  }
+
+  void _onKeyEvent(KeyEvent event, int index) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.backspace) {
+      if (_otpControllers[index].text.isEmpty && index > 0) _otpFocusNodes[index - 1].requestFocus();
+    }
+  }
+
+  Future<void> _confirmOtp() async {
+    if (_otp.length != _otpLen) return;
+    context.read<AuthProvider>().clearError();
+    final success = await context.read<AuthProvider>().changePassword(_otp);
+    if (!mounted) return;
+    if (success) {
       _snack('Password changed successfully!', AppColors.success);
       context.pop();
+    } else {
+      _clearOtp();
     }
+  }
+
+  Future<void> _resend() async {
+    if (!_canResend) return;
+    context.read<AuthProvider>().clearError();
+    final success = await context.read<AuthProvider>().requestChangePasswordOtp(
+      currentPassword: _currentCtrl.text,
+      newPassword:     _newCtrl.text,
+      confirmPassword: _confirmCtrl.text,
+    );
+    if (!mounted) return;
+    if (success) { _startTimer(); _clearOtp(); }
   }
 
   void _snack(String msg, Color color) {
@@ -57,117 +155,422 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     ));
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Change Password', style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(_step == 1 ? 'Change Password' : 'Verify OTP',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 18)),
         leading: GestureDetector(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (_step == 2) {
+              setState(() => _step = 1);
+              _anim.reset(); _anim.forward();
+              _timer?.cancel();
+            } else {
+              context.pop();
+            }
+          },
           child: Container(
             margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 15),
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(context.hPad),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.06), blurRadius: 14, offset: const Offset(0, 4))],
-              ),
-              child: Column(
-                children: [
-                  _field(_currentCtrl, 'Current Password'),
-                  const SizedBox(height: 16),
-                  _field(_newCtrl, 'New Password'),
-                  const SizedBox(height: 16),
-                  _field(_confirmCtrl, 'Confirm New Password'),
-                  if (auth.errorMessage != null) ...[
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
-                      ),
-                      child: Text(auth.errorMessage!, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13)),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  GestureDetector(
-                    onTap: auth.isLoading ? null : _save,
-                    child: Container(
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: auth.isLoading ? null : AppColors.primaryGradient,
-                        color: auth.isLoading ? AppColors.disabled : null,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: auth.isLoading ? null : [
-                          BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5))],
-                      ),
-                      child: Center(
-                        child: auth.isLoading
-                            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.lock_reset_rounded, color: Colors.white, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text('Update Password', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
-                                ],
-                              ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      body: FadeTransition(
+        opacity: _fade,
+        child: _step == 1 ? _buildStep1() : _buildStep2(),
       ),
     );
   }
 
-  Widget _field(TextEditingController ctrl, String label) {
+  // ── Step 1 UI ─────────────────────────────────────────────────────────────
+
+  Widget _buildStep1() {
+    final auth = context.watch<AuthProvider>();
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(context.hPad),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+
+          // Info banner
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Enter your current password and choose a new one. An OTP will be sent to your device to confirm.',
+                    style: GoogleFonts.outfit(color: AppColors.primary, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          _sectionLabel('CURRENT PASSWORD', AppColors.primary),
+          const SizedBox(height: 10),
+          _pwCard([
+            _pwField(_currentCtrl, 'Current Password', _obscureCurrent,
+              () => setState(() => _obscureCurrent = !_obscureCurrent)),
+          ]),
+          const SizedBox(height: 16),
+
+          _sectionLabel('NEW PASSWORD', const Color(0xFF7C3AED)),
+          const SizedBox(height: 10),
+          _pwCard([
+            _pwField(_newCtrl, 'New Password', _obscureNew,
+              () => setState(() => _obscureNew = !_obscureNew)),
+            const SizedBox(height: 14),
+            _pwField(_confirmCtrl, 'Confirm New Password', _obscureConfirm,
+              () => setState(() => _obscureConfirm = !_obscureConfirm)),
+          ]),
+
+          if (auth.errorMessage != null) ...[
+            const SizedBox(height: 16),
+            _errorBanner(auth.errorMessage!),
+          ],
+          const SizedBox(height: 24),
+
+          _primaryButton(
+            label: 'Send OTP',
+            icon: Icons.send_rounded,
+            loading: auth.isLoading,
+            onTap: _sendOtp,
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // ── Step 2 UI ─────────────────────────────────────────────────────────────
+
+  Widget _buildStep2() {
+    final auth = context.watch<AuthProvider>();
+    final phone = context.read<AuthProvider>().user?.phone ?? '';
+    final maskedPhone = phone.length >= 6
+        ? '${phone.substring(0, phone.length - 4)}****'
+        : phone;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(context.hPad),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+
+          // OTP sent banner
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'OTP sent to your registered device ($maskedPhone). Enter it below.',
+                    style: GoogleFonts.outfit(color: AppColors.success, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          _sectionLabel('VERIFICATION CODE', const Color(0xFF7C3AED)),
+          const SizedBox(height: 12),
+
+          // OTP card
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text('Enter 6-digit code',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14, color: AppColors.textSecondary)),
+                const SizedBox(height: 20),
+
+                // OTP boxes
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    children: List.generate(_otpLen, (i) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: KeyboardListener(
+                        focusNode: FocusNode(),
+                        onKeyEvent: (e) => _onKeyEvent(e, i),
+                        child: SizedBox(
+                          width: 50, height: 56,
+                          child: TextFormField(
+                            controller: _otpControllers[i],
+                            focusNode: _otpFocusNodes[i],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            maxLength: 1,
+                            style: GoogleFonts.outfit(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                            decoration: InputDecoration(
+                              counterText: '',
+                              filled: true,
+                              fillColor: AppColors.inputFill,
+                              contentPadding: EdgeInsets.zero,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: AppColors.border, width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: AppColors.primary, width: 2.5),
+                              ),
+                            ),
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            onChanged: (v) => _onOtpChanged(v, i),
+                          ),
+                        ),
+                      ),
+                    )),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Resend
+                GestureDetector(
+                  onTap: _canResend ? _resend : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _canResend
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : AppColors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _canResend
+                            ? AppColors.primary.withValues(alpha: 0.3)
+                            : AppColors.border),
+                    ),
+                    child: Text(
+                      _canResend ? 'Resend OTP' : 'Retry in ${_resendSeconds}s',
+                      style: GoogleFonts.outfit(
+                        color: _canResend ? AppColors.primary : AppColors.textHint,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (auth.errorMessage != null) ...[
+            const SizedBox(height: 16),
+            _errorBanner(auth.errorMessage!),
+          ],
+          const SizedBox(height: 24),
+
+          _primaryButton(
+            label: 'Confirm',
+            icon: Icons.check_rounded,
+            loading: auth.isLoading,
+            onTap: _otp.length == _otpLen ? _confirmOtp : null,
+            enabled: _otp.length == _otpLen,
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  // ── Shared helpers ────────────────────────────────────────────────────────
+
+  Widget _sectionLabel(String title, Color color) {
+    return Row(
+      children: [
+        Container(
+          width: 3, height: 13,
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(width: 8),
+        Text(title,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+            fontSize: 11,
+            letterSpacing: 1.2,
+          )),
+      ],
+    );
+  }
+
+  Widget _pwCard(List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _pwField(
+    TextEditingController ctrl,
+    String label,
+    bool obscure,
+    VoidCallback toggleObscure,
+  ) {
     return TextFormField(
       controller: ctrl,
-      obscureText: _obscure,
+      obscureText: obscure,
       style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13),
-        prefixIcon: Icon(Icons.lock_outline_rounded, color: AppColors.primary.withValues(alpha: 0.5), size: 20),
-        suffixIcon: label == 'Current Password'
-            ? GestureDetector(
-                onTap: () => setState(() => _obscure = !_obscure),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: AppColors.textHint, size: 20),
-                ),
-              )
-            : null,
-        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-        filled: true, fillColor: AppColors.inputFill,
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 14, right: 10),
+          child: Icon(Icons.lock_outline_rounded,
+            color: AppColors.primary.withValues(alpha: 0.5), size: 20),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 44),
+        suffixIcon: GestureDetector(
+          onTap: toggleObscure,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: Icon(
+              obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              color: AppColors.textHint, size: 20),
+          ),
+        ),
+        suffixIconConstraints: const BoxConstraints(minWidth: 44),
+        filled: true,
+        fillColor: AppColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+      ),
+    );
+  }
+
+  Widget _errorBanner(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(message,
+              style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _primaryButton({
+    required String label,
+    required IconData icon,
+    required bool loading,
+    required VoidCallback? onTap,
+    bool enabled = true,
+  }) {
+    final active = enabled && !loading;
+    return GestureDetector(
+      onTap: active ? onTap : null,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: active ? AppColors.primaryGradient : null,
+          color: active ? null : AppColors.disabled,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: active ? [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ] : null,
+        ),
+        child: Center(
+          child: loading
+              ? const SizedBox(width: 22, height: 22,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text(label,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                  ],
+                ),
+        ),
       ),
     );
   }
 }
-
-
-

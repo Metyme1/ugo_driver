@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
     final success = await auth.login(
-      phone: _phoneCtrl.text.trim(),
+      phone: '+251${_phoneCtrl.text.trim()}',
       password: _passwordCtrl.text,
     );
     if (success && mounted) {
@@ -162,12 +162,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               const SizedBox(height: 8),
                               _buildTextField(
                                 controller: _phoneCtrl,
-                                hint: '09XXXXXXXX',
+                                hint: '9XXXXXXXX',
                                 prefixIcon: Icons.phone_outlined,
-                                keyboardType: TextInputType.phone,
-                                validator: (v) => (v == null || v.trim().isEmpty)
-                                    ? 'Phone is required'
-                                    : null,
+                                prefixText: '+251 ',
+                                keyboardType: TextInputType.number,
+                                maxLength: 9,
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Phone is required';
+                                  if (v.length != 9) return 'Enter exactly 9 digits';
+                                  if (!v.startsWith('7') && !v.startsWith('9')) {
+                                    return 'Number must start with 7 or 9';
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
                               _buildLabel('Password'),
@@ -299,6 +306,8 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget? suffixIcon,
     TextInputType? keyboardType,
     bool obscureText = false,
+    String? prefixText,
+    int? maxLength,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
@@ -306,13 +315,21 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      maxLength: maxLength,
       style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.outfit(fontSize: 14, color: AppColors.textHint),
+        counterText: '',
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, color: AppColors.primary.withValues(alpha: 0.5), size: 20)
             : null,
+        prefixText: prefixText,
+        prefixStyle: GoogleFonts.outfit(
+          fontSize: 15,
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w500,
+        ),
         suffixIcon: suffixIcon != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffixIcon) : null,
         suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
         filled: true,

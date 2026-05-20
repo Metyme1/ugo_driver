@@ -40,4 +40,22 @@ class NotificationsService {
       return ApiResponse.failure(message: _api.handleError(e));
     }
   }
+
+  Future<ApiResponse<void>> deleteNotification(String id) async {
+    try {
+      await _api.delete('${ApiConfig.notifications}/$id');
+      return ApiResponse.success();
+    } on DioException catch (e) {
+      return ApiResponse.failure(message: _api.handleError(e));
+    }
+  }
+
+  Future<ApiResponse<void>> clearAll() async {
+    try {
+      await _api.delete(ApiConfig.notifications);
+      return ApiResponse.success();
+    } on DioException catch (e) {
+      return ApiResponse.failure(message: _api.handleError(e));
+    }
+  }
 }

@@ -40,6 +40,22 @@ class NotificationsProvider extends ChangeNotifier {
 
   Future<void> markAllAsRead() async {
     await _service.markAllAsRead();
-    await loadNotifications();
+    _notifications = _notifications.map((n) => NotificationModel(
+      id: n.id, title: n.title, body: n.body,
+      isRead: true, type: n.type, data: n.data, createdAt: n.createdAt,
+    )).toList();
+    notifyListeners();
+  }
+
+  Future<void> deleteNotification(String id) async {
+    await _service.deleteNotification(id);
+    _notifications.removeWhere((n) => n.id == id);
+    notifyListeners();
+  }
+
+  Future<void> clearAll() async {
+    await _service.clearAll();
+    _notifications = [];
+    notifyListeners();
   }
 }

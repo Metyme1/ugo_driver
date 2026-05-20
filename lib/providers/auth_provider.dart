@@ -176,12 +176,22 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(false);
   }
 
-  Future<bool> updateProfile({String? firstName, String? lastName, String? email}) async {
+  Future<bool> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? address,
+  }) async {
     _setLoading(true);
+    _setError(null);
     final data = <String, dynamic>{};
-    if (firstName != null) data['firstName'] = firstName;
-    if (lastName != null) data['lastName'] = lastName;
-    if (email != null) data['email'] = email;
+    final first = (firstName ?? _user?.firstName ?? '').trim();
+    final last  = (lastName  ?? _user?.lastName  ?? '').trim();
+    if (first.isNotEmpty || last.isNotEmpty) {
+      data['full_name'] = '$first $last'.trim();
+    }
+    if (email   != null && email.isNotEmpty)   data['email']   = email;
+    if (address != null && address.isNotEmpty) data['address'] = address;
 
     final response = await _authService.updateProfile(data);
     _setLoading(false);
@@ -194,18 +204,30 @@ class AuthProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> changePassword({
+  /// Step 1: verify current password and send OTP to the driver's device.
+  Future<bool> requestChangePasswordOtp({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
   }) async {
     _setLoading(true);
     _setError(null);
-    final response = await _authService.changePassword(
+    final response = await _authService.requestChangePasswordOtp(
       currentPassword: currentPassword,
       newPassword: newPassword,
       confirmPassword: confirmPassword,
     );
+    _setLoading(false);
+    if (response.success) return true;
+    _setError(response.error?.message ?? 'Failed');
+    return false;
+  }
+
+  /// Step 2: confirm OTP and apply new password.
+  Future<bool> changePassword(String otp) async {
+    _setLoading(true);
+    _setError(null);
+    final response = await _authService.changePassword(otp);
     _setLoading(false);
     if (response.success) return true;
     _setError(response.error?.message ?? 'Failed');

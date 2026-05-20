@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.1.7:3001/api';
+  static const String baseUrl = 'http://192.168.1.5:3001/api';
 
   static const int connectionTimeout = 60000;
   static const int receiveTimeout = 60000;
@@ -15,6 +15,8 @@ class ApiConfig {
   static const String refreshToken = '/auth/refresh-token';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
+  static const String changePasswordRequestOtp =
+      '/auth/change-password/request-otp';
   static const String changePassword = '/auth/change-password';
 
   // Profile

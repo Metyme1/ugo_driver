@@ -26,17 +26,30 @@ class UserModel {
   String get fullName => '$firstName $lastName';
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Support both camelCase (legacy) and snake_case (API) field names
+    String firstName = json['firstName'] ?? json['first_name'] ?? '';
+    String lastName  = json['lastName']  ?? json['last_name']  ?? '';
+    // Fall back to splitting full_name if individual parts are missing
+    if (firstName.isEmpty && lastName.isEmpty) {
+      final full = (json['full_name'] as String? ?? '').trim();
+      if (full.isNotEmpty) {
+        final parts = full.split(RegExp(r'\s+'));
+        firstName = parts[0];
+        lastName  = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      }
+    }
+    final rawCreatedAt = json['createdAt'] ?? json['created_at'];
     return UserModel(
       id: json['id'] ?? json['_id'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
+      firstName: firstName,
+      lastName: lastName,
       phone: json['phone'] ?? '',
       email: json['email'],
-      userType: json['userType'] ?? 'driver',
+      userType: json['userType'] ?? json['user_type'] ?? 'driver',
       photo: json['photo'],
       address: json['address'] is String ? json['address'] as String : null,
       status: json['status'] ?? 'active',
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
+      createdAt: rawCreatedAt != null ? DateTime.parse(rawCreatedAt) : DateTime.now(),
     );
   }
 

@@ -140,19 +140,31 @@ class AuthService {
     }
   }
 
-  Future<ApiResponse<void>> changePassword({
+  /// Step 1: verify current password + send OTP to device.
+  Future<ApiResponse<void>> requestChangePasswordOtp({
     required String currentPassword,
     required String newPassword,
     required String confirmPassword,
   }) async {
     try {
-      final response = await _api.post(ApiConfig.changePassword, data: {
+      final response = await _api.post(ApiConfig.changePasswordRequestOtp, data: {
         'current_password': currentPassword,
         'new_password': newPassword,
         'confirm_password': confirmPassword,
       });
+      if (response.statusCode == 200) return ApiResponse.success(message: 'OTP sent');
+      return ApiResponse.failure(message: response.data['error']?['message'] ?? response.data['message'] ?? 'Failed');
+    } on DioException catch (e) {
+      return ApiResponse.failure(message: _api.handleError(e));
+    }
+  }
+
+  /// Step 2: confirm OTP and apply new password.
+  Future<ApiResponse<void>> changePassword(String otp) async {
+    try {
+      final response = await _api.post(ApiConfig.changePassword, data: {'otp': otp});
       if (response.statusCode == 200) return ApiResponse.success(message: 'Password changed');
-      return ApiResponse.failure(message: response.data['message'] ?? 'Failed');
+      return ApiResponse.failure(message: response.data['error']?['message'] ?? response.data['message'] ?? 'Failed');
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
     }
@@ -165,7 +177,7 @@ class AuthService {
         final resData = response.data['data'] ?? response.data;
         return ApiResponse.success(data: UserModel.fromJson(resData['user'] ?? resData));
       }
-      return ApiResponse.failure(message: response.data['message'] ?? 'Failed');
+      return ApiResponse.failure(message: response.data['error']?['message'] ?? response.data['message'] ?? 'Failed');
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
     }
