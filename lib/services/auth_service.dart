@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../config/api_config.dart';
 import '../models/api_response.dart';
 import '../models/auth_models.dart';
 import '../models/user_model.dart';
 import 'api_service.dart';
+import 'fcm_service.dart';
 
 class AuthService {
   final ApiService _api = ApiService();
@@ -11,6 +14,10 @@ class AuthService {
   Future<ApiResponse<RegisterResponse>> register(RegisterRequest request) async {
     try {
       final fields = request.toJson().map((k, v) => MapEntry(k, v.toString()));
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        fields['device_info'] = jsonEncode({'fcm_token': fcmToken, 'device_type': 'android'});
+      }
       FormData formData = FormData.fromMap(fields);
       if (request.nationalIdImage != null) {
         formData.files.add(MapEntry(
@@ -42,6 +49,7 @@ class AuthService {
         final data = response.data['data'] ?? response.data;
         final authResponse = AuthResponse.fromJson(data);
         await _api.saveTokens(authResponse.tokens.accessToken, authResponse.tokens.refreshToken);
+        FcmService.instance.uploadToken();
         return ApiResponse.success(data: authResponse, message: 'Login successful');
       }
       return ApiResponse.failure(message: response.data['message'] ?? 'Login failed');
@@ -57,6 +65,7 @@ class AuthService {
         final data = response.data['data'] ?? response.data;
         final authResponse = AuthResponse.fromJson(data);
         await _api.saveTokens(authResponse.tokens.accessToken, authResponse.tokens.refreshToken);
+        FcmService.instance.uploadToken();
         return ApiResponse.success(data: authResponse, message: 'Verified');
       }
       return ApiResponse.failure(message: response.data['message'] ?? 'Verification failed');

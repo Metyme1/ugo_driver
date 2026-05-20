@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
@@ -13,16 +14,6 @@ import '../../providers/driver_billing_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/trip_service.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Supplemental card colors not in AppColors
-// ─────────────────────────────────────────────────────────────────────────────
-const _kEmerald = Color(0xFF065F46);
-const _kRust = Color(0xFF7C2D12);
-const _kSlate = Color(0xFF1E293B);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HomeScreen
-// ─────────────────────────────────────────────────────────────────────────────
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -93,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              // ── Top bar ──────────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: _TopBar(
                   greeting: _greeting,
@@ -102,122 +92,127 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // ── Stat cards ───────────────────────────────────────────────
+              // Earnings hero banner
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 sliver: SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          _StatCard(
-                            label: 'Net Earnings',
-                            sub: 'ETB · This month',
-                            value: earningsStr,
-                            icon: Icons.account_balance_wallet_rounded,
-                            color: AppColors.primaryDark,
-                            onTap: () => context.push('/billing'),
-                          ),
-                          const SizedBox(width: 10),
-                          _StatCard(
-                            label: "Today's Trips",
-                            sub: activeTrips > 0
-                                ? '$activeTrips active now'
-                                : 'No active trips',
-                            value: _todayTrips.length.toString(),
-                            icon: Icons.directions_car_rounded,
-                            color: AppColors.primaryLight,
-                            onTap: () => context.go('/routes'),
+                  child: GestureDetector(
+                    onTap: () => context.push('/billing'),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Row(
+                      child: Row(
                         children: [
-                          _StatCard(
-                            label: 'Nominations',
-                            sub: nominations.pendingCount > 0
-                                ? 'Tap to respond'
-                                : 'No pending',
-                            value: nominations.pendingCount.toString(),
-                            icon: Icons.pending_actions_rounded,
-                            color:
-                                nominations.pendingCount > 0 ? _kRust : _kSlate,
-                            onTap: () => context.go('/nominations'),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Net Earnings',
+                                  style: GoogleFonts.outfit(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 4),
+                                Text('ETB $earningsStr',
+                                  style: GoogleFonts.outfit(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.5)),
+                                const SizedBox(height: 4),
+                                Text('This month Â· Tap to view details',
+                                  style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
+                              ],
+                            ),
                           ),
-                          const SizedBox(width: 10),
-                          _StatCard(
-                            label: 'Alerts',
-                            sub: notifs.unreadCount > 0
-                                ? 'Tap to read'
-                                : 'All caught up',
-                            value: notifs.unreadCount.toString(),
-                            icon: Icons.notifications_rounded,
-                            color: notifs.unreadCount > 0
-                                ? AppColors.primary
-                                : _kSlate,
-                            onTap: () => context.push('/notifications'),
+                          Container(
+                            width: 56, height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 26),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Stat row
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    children: [
+                      _MiniStat(
+                        label: "Today's Trips",
+                        value: _todayTrips.length.toString(),
+                        sub: activeTrips > 0 ? '$activeTrips active' : 'No active trips',
+                        icon: Icons.directions_car_rounded,
+                        color: AppColors.accent,
+                        onTap: () => context.go('/routes'),
+                      ),
+                      const SizedBox(width: 10),
+                      _MiniStat(
+                        label: 'Nominations',
+                        value: nominations.pendingCount.toString(),
+                        sub: nominations.pendingCount > 0 ? 'Tap to respond' : 'No pending',
+                        icon: Icons.pending_actions_rounded,
+                        color: nominations.pendingCount > 0 ? AppColors.warning : AppColors.textSecondary,
+                        onTap: () => context.go('/nominations'),
+                      ),
+                      const SizedBox(width: 10),
+                      _MiniStat(
+                        label: 'Alerts',
+                        value: notifs.unreadCount.toString(),
+                        sub: notifs.unreadCount > 0 ? 'Tap to read' : 'All clear',
+                        icon: Icons.notifications_rounded,
+                        color: notifs.unreadCount > 0 ? AppColors.error : AppColors.textSecondary,
+                        onTap: () => context.push('/notifications'),
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // ── Today's Routes ───────────────────────────────────────────
+              // Today's Routes
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                 sliver: SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Section header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
                               Container(
-                                width: 30,
-                                height: 30,
+                                width: 32, height: 32,
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
-                                  Icons.route_rounded,
-                                  color: AppColors.primary,
-                                  size: 16,
-                                ),
+                                child: const Icon(Icons.route_rounded, color: Colors.white, size: 16),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                "Today's Routes",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
+                              const SizedBox(width: 10),
+                              Text("Today's Routes",
+                                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
                               if (_todayTrips.isNotEmpty) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 7, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: Text(
-                                    '${_todayTrips.length}',
-                                    style: const TextStyle(
-                                      color: AppColors.textOnPrimary,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                                  child: Text('${_todayTrips.length}',
+                                    style: GoogleFonts.outfit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500)),
                                 ),
                               ],
                             ],
@@ -226,10 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () => context.go('/routes'),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.primary,
-                              textStyle: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              textStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400),
                             ),
                             child: const Text('View all'),
                           ),
@@ -237,52 +229,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Trip list
                       if (_loadingTrips)
                         const Center(
                           child: Padding(
                             padding: EdgeInsets.all(28),
-                            child: CircularProgressIndicator(
-                              color: AppColors.primary,
-                            ),
+                            child: CircularProgressIndicator(color: AppColors.primary),
                           ),
                         )
                       else if (_todayTrips.isEmpty)
                         const _EmptyCard(
                           icon: Icons.route_outlined,
-                          message:
-                              'No routes scheduled for today.\nCheck back after your groups are set up.',
+                          message: 'No routes scheduled for today.\nCheck back after your groups are set up.',
                         )
                       else ...[
-                        ..._todayTrips.take(2).map(
-                              (trip) => _TripTile(
-                                trip: trip,
-                                onTap: () => context.go('/routes'),
-                              ),
-                            ),
+                        ..._todayTrips.take(2).map((trip) => _TripTile(trip: trip, onTap: () => context.go('/routes'))),
                         if (_todayTrips.length > 2) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
                               onPressed: () => context.go('/routes'),
-                              icon: const Icon(Icons.arrow_forward_rounded,
-                                  size: 15),
+                              icon: const Icon(Icons.arrow_forward_rounded, size: 15),
                               label: Text(
-                                'View ${_todayTrips.length - 2} more route'
-                                '${_todayTrips.length - 2 > 1 ? 's' : ''}',
+                                'View ${_todayTrips.length - 2} more route${_todayTrips.length - 2 > 1 ? 's' : ''}',
+                                style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400),
                               ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.primary,
-                                side: const BorderSide(
-                                    color: AppColors.border, width: 0.5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                textStyle: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                side: const BorderSide(color: AppColors.border),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                               ),
                             ),
                           ),
@@ -300,50 +275,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _TopBar — uses AppColors.headerGradient, no overlap with cards below
-// ─────────────────────────────────────────────────────────────────────────────
 class _TopBar extends StatelessWidget {
   final String greeting;
   final String? firstName;
   final int unreadCount;
-
-  const _TopBar({
-    required this.greeting,
-    required this.firstName,
-    required this.unreadCount,
-  });
+  const _TopBar({required this.greeting, required this.firstName, required this.unreadCount});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: AppColors.headerGradient,
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Row(
             children: [
-              // Avatar
               Container(
-                width: 44,
-                height: 44,
+                width: 46, height: 46,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.15),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
                 ),
-                child: const Icon(Icons.person_rounded,
-                    color: Colors.white, size: 22),
+                child: const Icon(Icons.person_rounded, color: Colors.white, size: 22),
               ),
-              const SizedBox(width: 12),
-
-              // Greeting block
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,93 +311,50 @@ class _TopBar extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          greeting,
-                          style: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
+                        Text(greeting,
+                          style: GoogleFonts.outfit(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w400)),
+                        const SizedBox(width: 8),
                         Container(
-                          width: 5,
-                          height: 5,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF4ADE80),
-                            shape: BoxShape.circle,
-                          ),
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 4),
-                        const Text(
-                          'Active',
-                          style: TextStyle(
-                            color: Color(0xFF86EFAC),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        Text('Active',
+                          style: GoogleFonts.outfit(color: AppColors.accentLight, fontSize: 11, fontWeight: FontWeight.w400)),
                       ],
                     ),
-                    Text(
-                      firstName ?? 'Driver',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        height: 1.2,
-                      ),
-                    ),
-                    Text(
-                      DateFormat('EEE, MMM d').format(DateTime.now()),
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 11,
-                      ),
-                    ),
+                    Text(firstName ?? 'Driver',
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w500, height: 1.2)),
+                    Text(DateFormat('EEE, MMM d').format(DateTime.now()),
+                      style: GoogleFonts.outfit(color: Colors.white38, fontSize: 11)),
                   ],
                 ),
               ),
-
-              // Notification bell
               GestureDetector(
                 onTap: () => context.push('/notifications'),
                 child: Stack(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 42, height: 42,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(13),
                       ),
-                      child: const Icon(Icons.notifications_outlined,
-                          color: Colors.white, size: 20),
+                      child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
                     ),
                     if (unreadCount > 0)
                       Positioned(
-                        right: 0,
-                        top: 0,
+                        right: 0, top: 0,
                         child: Container(
-                          width: 16,
-                          height: 16,
+                          width: 16, height: 16,
                           decoration: BoxDecoration(
                             color: AppColors.error,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.gradientEnd,
-                              width: 1.5,
-                            ),
+                            border: Border.all(color: AppColors.primaryDark, width: 1.5),
                           ),
                           child: Center(
-                            child: Text(
-                              '$unreadCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: Text('$unreadCount',
+                              style: GoogleFonts.outfit(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w500)),
                           ),
                         ),
                       ),
@@ -452,24 +369,17 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _StatCard
-// ─────────────────────────────────────────────────────────────────────────────
-class _StatCard extends StatelessWidget {
+class _MiniStat extends StatelessWidget {
   final String label;
-  final String sub;
   final String value;
+  final String sub;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _StatCard({
-    required this.label,
-    required this.sub,
-    required this.value,
-    required this.icon,
-    required this.color,
-    required this.onTap,
+  const _MiniStat({
+    required this.label, required this.value, required this.sub,
+    required this.icon, required this.color, required this.onTap,
   });
 
   @override
@@ -480,60 +390,37 @@ class _StatCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 18),
-                  ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: Colors.white.withValues(alpha: 0.4),
-                    size: 16,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  height: 1,
+              Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Icon(icon, color: color, size: 18),
               ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              const SizedBox(height: 10),
+              Text(value,
+                style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w500, color: AppColors.textPrimary, height: 1)),
               const SizedBox(height: 2),
-              Text(
-                sub,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontSize: 10,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Text(label,
+                style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w400, color: AppColors.textSecondary)),
+              const SizedBox(height: 1),
+              Text(sub,
+                style: GoogleFonts.outfit(fontSize: 10, color: color),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
@@ -542,9 +429,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _TripTile
-// ─────────────────────────────────────────────────────────────────────────────
 class _TripTile extends StatelessWidget {
   final DriverDailyTrip trip;
   final VoidCallback onTap;
@@ -565,32 +449,36 @@ class _TripTile extends StatelessWidget {
       statusLabel = 'Active';
       statusIcon = Icons.play_circle_rounded;
     } else {
-      statusColor = AppColors.textSecondary;
+      statusColor = AppColors.textHint;
       statusLabel = 'Scheduled';
       statusIcon = Icons.schedule_rounded;
     }
 
-    final tripIcon =
-        trip.isToSchool ? Icons.school_rounded : Icons.home_rounded;
+    final tripIcon = trip.isToSchool ? Icons.school_rounded : Icons.home_rounded;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 44, height: 44,
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(tripIcon, color: statusColor, size: 20),
             ),
@@ -599,27 +487,16 @@ class _TripTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    trip.routeLabel,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  Text(trip.routeLabel,
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textPrimary)),
                   const SizedBox(height: 2),
-                  Text(
-                    '${trip.groupName} · ${trip.scheduledTime}',
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
+                  Text('${trip.groupName} Â· ${trip.scheduledTime}',
+                    style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
@@ -629,20 +506,13 @@ class _TripTile extends StatelessWidget {
                 children: [
                   Icon(statusIcon, size: 10, color: statusColor),
                   const SizedBox(width: 4),
-                  Text(
-                    statusLabel,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text(statusLabel,
+                    style: GoogleFonts.outfit(fontSize: 11, color: statusColor, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded,
-                color: AppColors.textSecondary, size: 18),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textHint, size: 18),
           ],
         ),
       ),
@@ -650,9 +520,6 @@ class _TripTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _EmptyCard
-// ─────────────────────────────────────────────────────────────────────────────
 class _EmptyCard extends StatelessWidget {
   final IconData icon;
   final String message;
@@ -662,35 +529,29 @@ class _EmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.07),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon,
-                size: 32, color: AppColors.primary.withValues(alpha: 0.35)),
+            child: Icon(icon, size: 34, color: AppColors.primary.withValues(alpha: 0.4)),
           ),
-          const SizedBox(height: 14),
-          Text(
-            message,
+          const SizedBox(height: 16),
+          Text(message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              height: 1.6,
-              fontSize: 12,
-            ),
-          ),
+            style: GoogleFonts.outfit(color: AppColors.textSecondary, height: 1.6, fontSize: 13)),
         ],
       ),
     );
   }
 }
+

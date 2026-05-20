@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+﻿import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -61,9 +61,6 @@ class _NominationDetailScreenState extends State<NominationDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
         title: const Text('Nomination Detail'),
       ),
       body: _loading
@@ -75,7 +72,7 @@ class _NominationDetailScreenState extends State<NominationDetailScreen> {
   }
 }
 
-// ─── Body ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _DetailBody extends StatelessWidget {
   final NominationDetail detail;
@@ -95,7 +92,7 @@ class _DetailBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Group header ──────────────────────────────────────────────────
+          // â”€â”€ Group header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(context.hPad),
@@ -109,7 +106,7 @@ class _DetailBody extends StatelessWidget {
                 Icon(Icons.groups, color: Colors.white, size: context.rv(28.0, 32.0, 40.0)),
                 const SizedBox(height: 12),
                 Text(detail.groupName,
-                    style: TextStyle(color: Colors.white, fontSize: context.fsHeadline, fontWeight: FontWeight.bold)),
+                    style: TextStyle(color: Colors.white, fontSize: context.fsHeadline, fontWeight: FontWeight.w500)),
                 Text(detail.schoolName,
                     style: TextStyle(color: Colors.white70, fontSize: context.fsBody)),
                 if (detail.description != null) ...[
@@ -122,7 +119,7 @@ class _DetailBody extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // ── Group details ─────────────────────────────────────────────────
+          // â”€â”€ Group details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _Section(
             title: 'Group Details',
             items: [
@@ -137,7 +134,7 @@ class _DetailBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── Your response ─────────────────────────────────────────────────
+          // â”€â”€ Your response â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _Section(
             title: 'Your Response',
             items: [
@@ -159,13 +156,13 @@ class _DetailBody extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // ── Pickup map ────────────────────────────────────────────────────
+          // â”€â”€ Pickup map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _PickupMapSection(students: detail.students),
 
-          // ── Students ──────────────────────────────────────────────────────
+          // â”€â”€ Students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           _StudentList(students: detail.students),
 
-          // ── Actions ───────────────────────────────────────────────────────
+          // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           if (detail.isPending) ...[
             const SizedBox(height: 32),
             AppButton(
@@ -198,7 +195,7 @@ class _DetailBody extends StatelessWidget {
       '${dt.day}/${dt.month}/${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 }
 
-// ─── Pickup map section ────────────────────────────────────────────────────
+// â”€â”€â”€ Pickup map section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PickupMapSection extends StatefulWidget {
   final List<NominationStudent> students;
@@ -250,7 +247,7 @@ class _PickupMapSectionState extends State<_PickupMapSection> {
       final coords = s.pickupCoordinates;
       if (coords == null || coords.length < 2) continue;
 
-      // coords stored as [lng, lat] (GeoJSON) — Google Maps needs LatLng(lat, lng)
+      // coords stored as [lng, lat] (GeoJSON) â€” Google Maps needs LatLng(lat, lng)
       final pickupPos = LatLng(coords[1], coords[0]);
       markers.add(Marker(
         markerId: MarkerId('pickup_$i'),
@@ -333,7 +330,7 @@ class _PickupMapSectionState extends State<_PickupMapSection> {
               Text(
                 'Pickup Locations',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   fontSize: 15,
                   color: AppColors.textPrimary,
                 ),
@@ -394,7 +391,7 @@ class _MapLegendDot extends StatelessWidget {
   }
 }
 
-// ─── Student list section ──────────────────────────────────────────────────
+// â”€â”€â”€ Student list section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StudentList extends StatelessWidget {
   final List<NominationStudent> students;
@@ -413,7 +410,7 @@ class _StudentList extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Students (${students.length})',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: AppColors.textPrimary),
               ),
             ],
           ),
@@ -476,7 +473,7 @@ class _StudentCard extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text('$index',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 14)),
+                        style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.primary, fontSize: 14)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -485,7 +482,7 @@ class _StudentCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(student.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                          style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14)),
                       Text('Grade ${student.grade}',
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                     ],
@@ -557,7 +554,7 @@ class _CardRow extends StatelessWidget {
   }
 }
 
-// ─── Reusable section widget ───────────────────────────────────────────────
+// â”€â”€â”€ Reusable section widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _Section extends StatelessWidget {
   final String title;
@@ -574,7 +571,7 @@ class _Section extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: Text(title,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
           ),
           const Divider(height: 1),
           ...items,
@@ -603,7 +600,7 @@ class _Item extends StatelessWidget {
           const Spacer(),
           Flexible(
             child: Text(value,
-                style: TextStyle(fontWeight: FontWeight.w600, color: valueColor ?? AppColors.textPrimary),
+                style: TextStyle(fontWeight: FontWeight.w400, color: valueColor ?? AppColors.textPrimary),
                 textAlign: TextAlign.end),
           ),
         ],
@@ -612,7 +609,7 @@ class _Item extends StatelessWidget {
   }
 }
 
-// ─── Error view ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Error view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _ErrorView extends StatelessWidget {
   final String message;
@@ -643,3 +640,5 @@ class _ErrorView extends StatelessWidget {
     );
   }
 }
+
+

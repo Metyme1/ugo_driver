@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
@@ -48,7 +48,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     super.dispose();
   }
 
-  // ── Location streaming ────────────────────────────────────────────────────
+  // â”€â”€ Location streaming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _startLocationStream() {
     _sendLocation(); // immediate first send
@@ -59,7 +59,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   }
 
   Future<void> _sendLocation() async {
-    debugPrint('[GPS] Requesting position…');
+    debugPrint('[GPS] Requesting positionâ€¦');
     final pos = await DriverTripService.getCurrentPosition();
     if (pos == null) {
       debugPrint('[GPS] ERROR: position is null (permission denied or GPS off)');
@@ -74,7 +74,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     }
   }
 
-  // ── Students ──────────────────────────────────────────────────────────────
+  // â”€â”€ Students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> _loadStudents() async {
     setState(() => _loadingStudents = true);
@@ -106,23 +106,23 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     }
   }
 
-  // ── Complete trip ─────────────────────────────────────────────────────────
+  // â”€â”€ Complete trip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> _completeTrip() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         title: const Text('End Route?'),
         content: const Text(
           'Mark this route as completed?\nParents will be notified that all students have been delivered.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogCtx, false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogCtx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('End Route', style: TextStyle(color: Colors.white)),
           ),
@@ -150,7 +150,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   @override
   Widget build(BuildContext context) {
@@ -160,9 +160,6 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
         title: Text(widget.tripLabel),
         actions: [
           IconButton(
@@ -179,7 +176,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
       ),
       body: Column(
         children: [
-          // ── Status bar ─────────────────────────────────────────────────
+          // â”€â”€ Status bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             color: AppColors.primary,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -224,7 +221,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
             ),
           ),
 
-          // ── Student list ───────────────────────────────────────────────
+          // â”€â”€ Student list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           if (_locationError != null)
             Container(
               color: AppColors.error.withValues(alpha: 0.1),
@@ -263,7 +260,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
                       ),
           ),
 
-          // ── End route button ───────────────────────────────────────────
+          // â”€â”€ End route button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SafeArea(
             child: Padding(
               padding: EdgeInsets.all(context.hPad),
@@ -277,7 +274,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : const Icon(Icons.flag),
-                  label: Text(_completing ? 'Ending Route…' : 'End Route'),
+                  label: Text(_completing ? 'Ending Routeâ€¦' : 'End Route'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: Colors.white,
@@ -294,7 +291,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   }
 }
 
-// ── Student card ──────────────────────────────────────────────────────────────
+// â”€â”€ Student card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StudentCard extends StatelessWidget {
   final StudentTripStatus status;
@@ -352,7 +349,7 @@ class _StudentCard extends StatelessWidget {
                           'Grade ${status.childGrade}',
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
                         ),
-                        const Text(' · ', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                        const Text(' Â· ', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
                       ],
                       Text(statusText, style: TextStyle(color: avatarColor, fontSize: 12, fontWeight: FontWeight.w500)),
                     ],
@@ -413,7 +410,7 @@ class _ActionButton extends StatelessWidget {
       );
 }
 
-// ── Stat chip ─────────────────────────────────────────────────────────────────
+// â”€â”€ Stat chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _StatChip extends StatelessWidget {
   final IconData icon;
@@ -436,10 +433,12 @@ class _StatChip extends StatelessWidget {
               Icon(icon, color: color, size: 14),
               const SizedBox(width: 4),
               Text(value,
-                  style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w500, fontSize: 16)),
             ],
           ),
           Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
         ],
       );
 }
+
+

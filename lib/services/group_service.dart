@@ -13,14 +13,18 @@ class GroupService {
       final response = await _api.get(ApiConfig.myGroups);
       if (response.statusCode == 200) {
         final data = response.data['data'];
-        final list = (data['groups'] as List? ?? [])
-            .map((e) => GroupModel.fromJson(e as Map<String, dynamic>))
+        final groups = data is Map ? data['groups'] : null;
+        final list = (groups as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(GroupModel.fromJson)
             .toList();
         return ApiResponse.success(data: list);
       }
       return ApiResponse.failure(message: 'Failed to fetch groups');
     } on DioException catch (e) {
       return ApiResponse.failure(message: _api.handleError(e));
+    } catch (e) {
+      return ApiResponse.failure(message: e.toString());
     }
   }
 

@@ -18,14 +18,19 @@ class GroupProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final response = await _service.getMyGroups();
-    _isLoading = false;
-    if (response.success) {
-      _groups = response.data ?? [];
-    } else {
-      _errorMessage = response.error?.message;
+    try {
+      final response = await _service.getMyGroups();
+      if (response.success) {
+        _groups = response.data ?? [];
+      } else {
+        _errorMessage = response.error?.message ?? 'Failed to load groups';
+      }
+    } catch (e) {
+      _errorMessage = 'Something went wrong';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   void clearError() { _errorMessage = null; notifyListeners(); }

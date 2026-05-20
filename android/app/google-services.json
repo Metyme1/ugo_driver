@@ -1,13 +1,32 @@
 {
   "project_info": {
-    "project_number": "111217332516",
-    "project_id": "ugodriver-9c92a",
-    "storage_bucket": "ugodriver-9c92a.firebasestorage.app"
+    "project_number": "479012824786",
+    "project_id": "ugo-driver-8b8fe",
+    "storage_bucket": "ugo-driver-8b8fe.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:111217332516:android:06daab23a43ec82ee2e3b1",
+        "mobilesdk_app_id": "1:479012824786:android:67b3c9b2332f998070ef0b",
+        "android_client_info": {
+          "package_name": "com.example.ugo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuAEkfX9zDvn__36-U2jKKPwJrQuRKDpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:479012824786:android:d925a41c07d3281b70ef0b",
         "android_client_info": {
           "package_name": "com.example.ugo_driver"
         }
@@ -15,7 +34,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAuQ5IIsyixWuy6-5BkXN1oWBcwjeDv8vE"
+          "current_key": "AIzaSyDuAEkfX9zDvn__36-U2jKKPwJrQuRKDpU"
         }
       ],
       "services": {

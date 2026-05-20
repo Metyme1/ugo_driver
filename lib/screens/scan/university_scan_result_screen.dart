@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
 import '../../models/university_scan_model.dart';
@@ -45,9 +45,6 @@ class _UniversityScanResultScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
         title: Text(
           _result != null ? 'Boarding Confirmed' : 'University Ticket',
           style: const TextStyle(color: Colors.white),
@@ -93,7 +90,7 @@ class _UniversityScanResultScreenState
                   children: [
                     Text('University Ticket Scanned',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             fontSize: 16,
                             color: AppColors.primary)),
                     Text('Review details and confirm boarding',
@@ -141,14 +138,14 @@ class _UniversityScanResultScreenState
                   SizedBox(width: 10),
                   Text('Ticket Fare',
                       style: TextStyle(
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w400,
                           color: AppColors.textPrimary)),
                 ],
               ),
               Text(
                 '${p.fare.toStringAsFixed(0)} ETB',
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     fontSize: 18,
                     color: AppColors.success),
               ),
@@ -198,10 +195,10 @@ class _UniversityScanResultScreenState
                   children: [
                     const Text('Boarding Confirmed',
                         style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w500,
                             fontSize: 17,
                             color: AppColors.success)),
-                    Text('${r.passengerName} — Seat ${r.seatNumber}',
+                    Text('${r.passengerName} â€” Seat ${r.seatNumber}',
                         style: const TextStyle(
                             color: AppColors.textSecondary, fontSize: 13)),
                   ],
@@ -229,7 +226,7 @@ class _UniversityScanResultScreenState
                   SizedBox(width: 8),
                   Text('Your Earning',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w500,
                           fontSize: 15,
                           color: AppColors.textPrimary)),
                 ],
@@ -268,7 +265,7 @@ class _UniversityScanResultScreenState
   }
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _InfoCard extends StatelessWidget {
   final String title;
@@ -287,7 +284,7 @@ class _InfoCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: Text(title,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary)),
           ),
           const Divider(height: 1),
@@ -318,7 +315,7 @@ class _InfoRow extends StatelessWidget {
           const Spacer(),
           Text(value,
               style: const TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w400,
                   color: AppColors.textPrimary,
                   fontSize: 13)),
         ],
@@ -343,16 +340,18 @@ class _EarningRow extends StatelessWidget {
         Text(label,
             style: TextStyle(
                 color: large ? AppColors.textPrimary : AppColors.textSecondary,
-                fontWeight: large ? FontWeight.bold : FontWeight.normal,
+                fontWeight: large ? FontWeight.w500 : FontWeight.normal,
                 fontSize: large ? 15 : 13)),
         Text(
           '$prefix ${amount.abs().toStringAsFixed(0)} ETB',
           style: TextStyle(
               color: color,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               fontSize: large ? 17 : 14),
         ),
       ],
     );
   }
 }
+
+

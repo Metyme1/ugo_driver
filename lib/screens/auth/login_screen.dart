@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
@@ -40,226 +41,238 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, Colors.white],
-            stops: [0.0, 0.45],
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          // Dark top section
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.42,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: -50,
+                    right: -40,
+                    child: Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.06),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 30,
+                    left: -30,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.accent.withValues(alpha: 0.12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final screenWidth = MediaQuery.of(context).size.width;
-              final isSmall = screenWidth < 360;
-              final hPadding = isSmall ? 16.0 : 24.0;
-              final titleFontSize = isSmall ? 26.0 : 32.0;
-              final cardPadding = isSmall ? 16.0 : 24.0;
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: hPadding),
-                  child: Column(
-                    children: [
-                      SizedBox(height: isSmall ? 40.0 : 60.0),
 
-                      Image.asset(
-                        'assets/icon/logo.png',
-                        width: isSmall ? 72.0 : 88.0,
-                        height: isSmall ? 72.0 : 88.0,
-                        fit: BoxFit.contain,
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 40),
+
+                    // Logo + title in top section
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
                       ),
-                      const SizedBox(height: 20),
-
-                      Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textOnPrimary,
-                        ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.asset('assets/icon/logo.png', fit: BoxFit.contain),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Sign in to your driver account',
-                        style: TextStyle(
-                          fontSize: isSmall ? 14.0 : 16.0,
-                          color: AppColors.textOnPrimary,
-                        ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Welcome Back',
+                      style: GoogleFonts.outfit(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sign in to your driver account',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                    ),
 
-                      SizedBox(height: isSmall ? 24.0 : 40.0),
+                    const SizedBox(height: 36),
 
-                      // White form card
-                      Container(
-                        padding: EdgeInsets.all(cardPadding),
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(32),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          child: Consumer<AuthProvider>(
-                            builder: (context, auth, _) => Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (auth.errorMessage != null) ...[
-                                  _errorBox(auth.errorMessage!),
-                                  const SizedBox(height: 16),
-                                ],
-                                _buildLabel('Phone Number'),
-                                const SizedBox(height: 8),
-                                _buildTextField(
-                                  controller: _phoneCtrl,
-                                  hint: '09XXXXXXXX',
-                                  prefixIcon: Icons.phone_outlined,
-                                  keyboardType: TextInputType.phone,
-                                  validator: (v) =>
-                                      (v == null || v.trim().isEmpty)
-                                          ? 'Phone is required'
-                                          : null,
-                                ),
+                    // White form card
+                    Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            blurRadius: 32,
+                            offset: const Offset(0, 8),
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Consumer<AuthProvider>(
+                          builder: (context, auth, _) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (auth.errorMessage != null) ...[
+                                _errorBox(auth.errorMessage!),
                                 const SizedBox(height: 20),
-                                _buildLabel('Password'),
-                                const SizedBox(height: 8),
-                                _buildTextField(
-                                  controller: _passwordCtrl,
-                                  hint: 'Enter Password',
-                                  prefixIcon: Icons.lock_outline,
-                                  obscureText: _obscurePassword,
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: AppColors.textHint,
-                                      size: 20,
-                                    ),
-                                    onPressed: () => setState(() =>
-                                        _obscurePassword = !_obscurePassword),
+                              ],
+                              _buildLabel('Phone Number'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                controller: _phoneCtrl,
+                                hint: '09XXXXXXXX',
+                                prefixIcon: Icons.phone_outlined,
+                                keyboardType: TextInputType.phone,
+                                validator: (v) => (v == null || v.trim().isEmpty)
+                                    ? 'Phone is required'
+                                    : null,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildLabel('Password'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                controller: _passwordCtrl,
+                                hint: 'Enter Password',
+                                prefixIcon: Icons.lock_outline_rounded,
+                                obscureText: _obscurePassword,
+                                suffixIcon: GestureDetector(
+                                  onTap: () => setState(() => _obscurePassword = !_obscurePassword),
+                                  child: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
+                                    color: AppColors.textHint,
+                                    size: 20,
                                   ),
-                                  validator: (v) => (v == null || v.isEmpty)
-                                      ? 'Password is required'
-                                      : null,
                                 ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        context.push('/forgot-password'),
-                                    child: const Text(
-                                      'Forgot password?',
-                                      style: TextStyle(
+                                validator: (v) => (v == null || v.isEmpty)
+                                    ? 'Password is required'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () => context.push('/forgot-password'),
+                                  child: Text(
+                                    'Forgot password?',
+                                    style: GoogleFonts.outfit(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+
+                              // Login button with gradient
+                              _GradientButton(
+                                label: 'Sign In',
+                                icon: Icons.arrow_forward_rounded,
+                                isLoading: auth.isLoading,
+                                onTap: auth.isLoading ? null : _login,
+                              ),
+
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "Don't have an account? ",
+                                    style: GoogleFonts.outfit(
+                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => context.push('/register'),
+                                    child: Text(
+                                      'Register',
+                                      style: GoogleFonts.outfit(
                                         color: AppColors.primary,
                                         fontWeight: FontWeight.w500,
                                         fontSize: 14,
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 32),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 56,
-                                  child: ElevatedButton(
-                                    onPressed: auth.isLoading ? null : _login,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: AppColors.textOnPrimary,
-                                      disabledBackgroundColor:
-                                          AppColors.primaryLight,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(28),
-                                      ),
-                                    ),
-                                    child: auth.isLoading
-                                        ? const SizedBox(
-                                            height: 24,
-                                            width: 24,
-                                            child: CircularProgressIndicator(
-                                              color: AppColors.textOnPrimary,
-                                              strokeWidth: 2.5,
-                                            ),
-                                          )
-                                        : const Text(
-                                            'Login',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                      "Don't have an account? ",
-                                      style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => context.push('/register'),
-                                      child: const Text(
-                                        'Register',
-                                        style: TextStyle(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                    ),
 
-                      const SizedBox(height: 40),
-                    ],
-                  ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-              );
-            },
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _errorBox(String message) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        color: AppColors.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 8),
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.error, fontSize: 13),
+              style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13),
             ),
           ),
         ],
@@ -270,10 +283,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+      style: GoogleFonts.outfit(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textSecondary,
+        letterSpacing: 0.3,
       ),
     );
   }
@@ -292,40 +306,111 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+      style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textHint),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: AppColors.textHint),
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: AppColors.textHint, size: 20)
+            ? Icon(prefixIcon, color: AppColors.primary.withValues(alpha: 0.5), size: 20)
             : null,
-        suffixIcon: suffixIcon,
+        suffixIcon: suffixIcon != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffixIcon) : null,
+        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
         filled: true,
         fillColor: AppColors.inputFill,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.error, width: 2),
         ),
-        errorStyle: const TextStyle(fontSize: 12),
+        errorStyle: GoogleFonts.outfit(fontSize: 12),
       ),
     );
   }
 }
+
+class _GradientButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  const _GradientButton({
+    required this.label,
+    required this.icon,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 58,
+        decoration: BoxDecoration(
+          gradient: isLoading ? null : AppColors.primaryGradient,
+          color: isLoading ? AppColors.disabled : null,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isLoading
+              ? null
+              : [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+        ),
+        child: Center(
+          child: isLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+

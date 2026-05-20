@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../config/theme.dart';
@@ -52,9 +52,6 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
         title: Text(_confirmed ? 'Ride Recorded' : 'Passenger Details'),
         automaticallyImplyLeading: false,
         actions: [
@@ -93,7 +90,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('QR Verified', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+                    Text('QR Verified', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: AppColors.primary)),
                     Text('Select rides to deduct below', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                   ],
                 ),
@@ -148,7 +145,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Rides to Deduct', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const Text('Rides to Deduct', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
               const SizedBox(height: 4),
               const Text(
                 'Increase if the passenger is paying for others',
@@ -168,7 +165,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                     children: [
                       Text(
                         '$_selectedRides',
-                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
                       ),
                       Text(
                         _selectedRides == 1 ? 'ride' : 'rides',
@@ -197,7 +194,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Deducting $_selectedRides rides — passenger paying for others',
+                        'Deducting $_selectedRides rides â€” passenger paying for others',
                         style: const TextStyle(color: AppColors.primary, fontSize: 12),
                       ),
                     ),
@@ -251,7 +248,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                   children: [
                     Text(
                       _ridesDeducted == 1 ? 'Ride Recorded' : '$_ridesDeducted Rides Recorded',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.success),
+                      style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 17, color: AppColors.success),
                     ),
                     Text(
                       '$_ridesDeducted ride${_ridesDeducted == 1 ? '' : 's'} deducted from ${widget.result.parentName}',
@@ -284,7 +281,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Updated Balance', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const Text('Updated Balance', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -297,7 +294,7 @@ class _ScanResultScreenState extends State<ScanResultScreen> {
                   Text(
                     '$_ridesLeftAfter left',
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       color: isLow ? AppColors.error : AppColors.success,
                       fontSize: 13,
                     ),
@@ -371,7 +368,7 @@ class _RidesBalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Current Balance', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Text('Current Balance', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -380,7 +377,7 @@ class _RidesBalanceCard extends StatelessWidget {
               Text(
                 '$ridesLeft remaining',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
                   color: isLow ? AppColors.error : AppColors.success,
                   fontSize: 13,
                 ),
@@ -456,7 +453,7 @@ class _Card extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
           ),
           const Divider(height: 1),
           ...children,
@@ -483,9 +480,11 @@ class _Row extends StatelessWidget {
           const SizedBox(width: 10),
           Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
           const Spacer(),
-          Flexible(child: Text(value, style: TextStyle(fontWeight: FontWeight.w600, color: valueColor ?? AppColors.textPrimary, fontSize: 13), textAlign: TextAlign.end)),
+          Flexible(child: Text(value, style: TextStyle(fontWeight: FontWeight.w400, color: valueColor ?? AppColors.textPrimary, fontSize: 13), textAlign: TextAlign.end)),
         ],
       ),
     );
   }
 }
+
+

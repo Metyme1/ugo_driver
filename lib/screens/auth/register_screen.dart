@@ -1,6 +1,7 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _pageController = PageController();
   int _currentStep = 0;
 
-  // Step 1 — Account
   final _step1Key = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
@@ -26,7 +26,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmCtrl = TextEditingController();
   bool _obscure = true;
 
-  // Step 2 — Personal Info
   final _step2Key = GlobalKey<FormState>();
   DateTime? _dateOfBirth;
   String? _educationLevel;
@@ -35,7 +34,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   DateTime? _licenseExpiry;
   File? _nationalIdImage;
 
-  // Step 3 — Vehicle Info
   final _step3Key = GlobalKey<FormState>();
   String? _vehicleType;
   final _plateCtrl = TextEditingController();
@@ -47,8 +45,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ('primary', 'Primary School'),
     ('secondary', 'Secondary School'),
     ('diploma', 'Diploma'),
-    ('degree', 'Bachelor\'s Degree'),
-    ('masters', 'Master\'s Degree'),
+    ('degree', "Bachelor's Degree"),
+    ('masters', "Master's Degree"),
     ('phd', 'PhD'),
   ];
 
@@ -58,25 +56,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ('force', 'Force / Mini-bus'),
   ];
 
-  static const _stepTitles = ['Register', 'Personal Info', 'Vehicle Info'];
+  static const _stepTitles = ['Create Account', 'Personal Info', 'Vehicle Info'];
   static const _stepSubtitles = [
     'Join the UGO driver network',
-    'Your identity & license details',
-    'Details about your vehicle',
+    'Identity & license details',
+    'Your vehicle details',
   ];
 
   @override
   void dispose() {
     _pageController.dispose();
-    _nameCtrl.dispose();
-    _phoneCtrl.dispose();
-    _passwordCtrl.dispose();
-    _confirmCtrl.dispose();
-    _nationalIdCtrl.dispose();
-    _licenseCtrl.dispose();
-    _plateCtrl.dispose();
-    _colorCtrl.dispose();
-    _modelCtrl.dispose();
+    _nameCtrl.dispose(); _phoneCtrl.dispose(); _passwordCtrl.dispose();
+    _confirmCtrl.dispose(); _nationalIdCtrl.dispose(); _licenseCtrl.dispose();
+    _plateCtrl.dispose(); _colorCtrl.dispose(); _modelCtrl.dispose();
     super.dispose();
   }
 
@@ -87,14 +79,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _ => false,
     };
     if (!valid) return;
-    _pageController.nextPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     setState(() => _currentStep++);
   }
 
   void _prevStep() {
-    _pageController.previousPage(
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     setState(() => _currentStep--);
   }
 
@@ -102,9 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: isExpiry
-          ? now.add(const Duration(days: 365))
-          : DateTime(now.year - 25),
+      initialDate: isExpiry ? now.add(const Duration(days: 365)) : DateTime(now.year - 25),
       firstDate: isExpiry ? now : DateTime(1950),
       lastDate: isExpiry ? DateTime(now.year + 20) : now,
       builder: (ctx, child) => Theme(
@@ -115,37 +103,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
     if (picked == null) return;
-    setState(() {
-      if (isExpiry) {
-        _licenseExpiry = picked;
-      } else {
-        _dateOfBirth = picked;
-      }
-    });
+    setState(() => isExpiry ? _licenseExpiry = picked : _dateOfBirth = picked);
   }
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final choice = await showModalBottomSheet<ImageSource>(
       context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined,
-                    color: AppColors.primary),
-                title: const Text('Take a photo'),
+                leading: Container(width: 40, height: 40,
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.camera_alt_outlined, color: AppColors.primary, size: 20)),
+                title: Text('Take a photo', style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined,
-                    color: AppColors.primary),
-                title: const Text('Choose from gallery'),
+                leading: Container(width: 40, height: 40,
+                  decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                  child: const Icon(Icons.photo_library_outlined, color: AppColors.accent, size: 20)),
+                title: Text('Choose from gallery', style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
             ],
@@ -166,28 +153,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phone: _phoneCtrl.text.trim(),
       password: _passwordCtrl.text,
       confirmPassword: _confirmCtrl.text,
-      dateOfBirth: _dateOfBirth != null
-          ? DateFormat('yyyy-MM-dd').format(_dateOfBirth!)
-          : null,
+      dateOfBirth: _dateOfBirth != null ? DateFormat('yyyy-MM-dd').format(_dateOfBirth!) : null,
       educationLevel: _educationLevel,
-      nationalIdNumber: _nationalIdCtrl.text.trim().isEmpty
-          ? null
-          : _nationalIdCtrl.text.trim(),
+      nationalIdNumber: _nationalIdCtrl.text.trim().isEmpty ? null : _nationalIdCtrl.text.trim(),
       nationalIdImage: _nationalIdImage,
-      licenseNumber: _licenseCtrl.text.trim().isEmpty
-          ? null
-          : _licenseCtrl.text.trim(),
-      licenseExpiry: _licenseExpiry != null
-          ? DateFormat('yyyy-MM-dd').format(_licenseExpiry!)
-          : null,
+      licenseNumber: _licenseCtrl.text.trim().isEmpty ? null : _licenseCtrl.text.trim(),
+      licenseExpiry: _licenseExpiry != null ? DateFormat('yyyy-MM-dd').format(_licenseExpiry!) : null,
       vehicleType: _vehicleType,
-      plateNumber: _plateCtrl.text.trim().isEmpty
-          ? null
-          : _plateCtrl.text.trim().toUpperCase(),
-      vehicleColor:
-          _colorCtrl.text.trim().isEmpty ? null : _colorCtrl.text.trim(),
-      vehicleModel:
-          _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
+      plateNumber: _plateCtrl.text.trim().isEmpty ? null : _plateCtrl.text.trim().toUpperCase(),
+      vehicleColor: _colorCtrl.text.trim().isEmpty ? null : _colorCtrl.text.trim(),
+      vehicleModel: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
     );
     if (success && mounted) {
       context.push('/otp', extra: {
@@ -200,132 +175,84 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, Colors.white],
-            stops: [0.0, 0.45],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // ── Gradient header ──────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          // Gradient header
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: _currentStep > 0
-                              ? _prevStep
-                              : () => context.pop(),
+                          onTap: _currentStep > 0 ? _prevStep : () => context.pop(),
                           child: Container(
-                            width: 36,
-                            height: 36,
+                            width: 38, height: 38,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.arrow_back_ios_new,
-                                size: 16, color: Colors.white),
+                            child: const Icon(Icons.arrow_back_ios_new, size: 15, color: Colors.white),
                           ),
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             'Step ${_currentStep + 1} of 3',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w400),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Text(
                       _stepTitles[_currentStep],
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: -0.5),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _stepSubtitles[_currentStep],
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
+                      style: GoogleFonts.outfit(fontSize: 14, color: Colors.white.withValues(alpha: 0.75)),
                     ),
                     const SizedBox(height: 20),
+                    _StepIndicator(currentStep: _currentStep),
                   ],
                 ),
               ),
-
-              // ── White card (fills remaining space) ───────────
-              Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(32)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x14000000),
-                        blurRadius: 20,
-                        offset: Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      _StepIndicator(currentStep: _currentStep),
-                      Expanded(
-                        child: PageView(
-                          controller: _pageController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            _step1(),
-                            _step2(),
-                            _step3(),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          // Form area
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [_step1(), _step2(), _step3()],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // ── Step 1: Account Info ────────────────────────────────────
-
   Widget _step1() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
         child: Form(
           key: _step1Key,
           child: Column(
@@ -333,100 +260,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               _buildLabel('Full Name'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _nameCtrl,
-                hint: 'Enter Full Name',
-                prefixIcon: Icons.person_outlined,
+              _buildTextField(controller: _nameCtrl, hint: 'Enter full name',
+                prefixIcon: Icons.person_outline_rounded,
                 textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().length < 2)
-                    ? 'Enter your full name'
-                    : null,
-              ),
-              const SizedBox(height: 16),
+                validator: (v) => (v == null || v.trim().length < 2) ? 'Enter your full name' : null),
+              const SizedBox(height: 18),
               _buildLabel('Phone Number'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _phoneCtrl,
-                hint: '09XXXXXXXX',
-                prefixIcon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Enter your phone number' : null,
-              ),
-              const SizedBox(height: 16),
+              _buildTextField(controller: _phoneCtrl, hint: '09XXXXXXXX',
+                prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your phone number' : null),
+              const SizedBox(height: 18),
               _buildLabel('Password'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _passwordCtrl,
-                hint: 'Enter Password',
-                prefixIcon: Icons.lock_outline,
-                obscureText: _obscure,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: AppColors.textHint,
-                    size: 20,
-                  ),
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                ),
-                validator: (v) =>
-                    (v == null || v.length < 8) ? 'At least 8 characters' : null,
-              ),
-              const SizedBox(height: 16),
+              _buildTextField(controller: _passwordCtrl, hint: 'Min 8 characters',
+                prefixIcon: Icons.lock_outline_rounded, obscureText: _obscure,
+                suffixIcon: GestureDetector(
+                  onTap: () => setState(() => _obscure = !_obscure),
+                  child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: AppColors.textHint, size: 20)),
+                validator: (v) => (v == null || v.length < 8) ? 'At least 8 characters' : null),
+              const SizedBox(height: 18),
               _buildLabel('Confirm Password'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _confirmCtrl,
-                hint: 'Confirm Password',
-                prefixIcon: Icons.lock_outline,
-                obscureText: _obscure,
-                validator: (v) =>
-                    v != _passwordCtrl.text ? 'Passwords do not match' : null,
-              ),
+              _buildTextField(controller: _confirmCtrl, hint: 'Confirm password',
+                prefixIcon: Icons.lock_outline_rounded, obscureText: _obscure,
+                validator: (v) => v != _passwordCtrl.text ? 'Passwords do not match' : null),
               if (auth.errorMessage != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 _errorBox(auth.errorMessage!),
               ],
               const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textOnPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28)),
-                  ),
-                  child: const Text(
-                    'Next',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
+              _GradientButton(label: 'Continue', isLoading: false, onTap: _nextStep),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Already have an account? ',
-                    style:
-                        TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  ),
+                  Text('Already have an account? ', style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Text(
-                      'Sign In',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
+                    child: Text('Sign In', style: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.w500, fontSize: 14)),
                   ),
                 ],
               ),
@@ -437,12 +310,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Step 2: Personal Info ───────────────────────────────────
-
   Widget _step2() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
         child: Form(
           key: _step2Key,
           child: Column(
@@ -450,39 +321,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               _buildLabel('Date of Birth'),
               const SizedBox(height: 8),
-              _dateField(
-                hint: 'Select date of birth',
-                value: _dateOfBirth,
-                icon: Icons.cake_outlined,
-                onTap: () => _pickDate(isExpiry: false),
-              ),
-              const SizedBox(height: 16),
-
+              _dateField(hint: 'Select date of birth', value: _dateOfBirth,
+                icon: Icons.cake_outlined, onTap: () => _pickDate(isExpiry: false)),
+              const SizedBox(height: 18),
               _buildLabel('Education Level'),
               const SizedBox(height: 8),
               _styledDropdown<String>(
-                value: _educationLevel,
-                hint: 'Select education level',
+                value: _educationLevel, hint: 'Select education level',
                 prefixIcon: Icons.school_outlined,
-                items: _educationLevels
-                    .map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2)))
-                    .toList(),
-                onChanged: (v) => setState(() => _educationLevel = v),
-              ),
-              const SizedBox(height: 16),
-
+                items: _educationLevels.map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
+                onChanged: (v) => setState(() => _educationLevel = v)),
+              const SizedBox(height: 18),
               _buildLabel('National ID Number'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _nationalIdCtrl,
-                hint: 'Enter national ID number',
+              _buildTextField(controller: _nationalIdCtrl, hint: 'Enter national ID number',
                 prefixIcon: Icons.badge_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter your national ID number'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your national ID number' : null),
+              const SizedBox(height: 18),
               _buildLabel('National ID Photo'),
               const SizedBox(height: 8),
               GestureDetector(
@@ -492,112 +347,79 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: AppColors.inputFill,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _nationalIdImage != null
-                          ? AppColors.primary
-                          : AppColors.border,
-                      width: _nationalIdImage != null ? 1.5 : 1,
+                      color: _nationalIdImage != null ? AppColors.primary : AppColors.border,
+                      width: _nationalIdImage != null ? 2 : 1,
                     ),
                   ),
                   child: _nationalIdImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Image.file(_nationalIdImage!, fit: BoxFit.cover),
-                        )
-                      : const Column(
+                      ? ClipRRect(borderRadius: BorderRadius.circular(14),
+                          child: Image.file(_nationalIdImage!, fit: BoxFit.cover))
+                      : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_a_photo_outlined,
-                                size: 36, color: AppColors.textHint),
-                            SizedBox(height: 8),
+                            Container(width: 52, height: 52,
+                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                              child: const Icon(Icons.add_a_photo_outlined, size: 24, color: AppColors.primary)),
+                            const SizedBox(height: 10),
                             Text('Tap to upload ID photo',
-                                style: TextStyle(
-                                    color: AppColors.textHint, fontSize: 13)),
+                              style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
                           ],
                         ),
                 ),
               ),
               if (_nationalIdImage == null) ...[
-                const SizedBox(height: 4),
-                const Text('  Required for verification',
-                    style: TextStyle(color: AppColors.error, fontSize: 12)),
+                const SizedBox(height: 6),
+                Text('  Required for verification',
+                  style: GoogleFonts.outfit(color: AppColors.error, fontSize: 12)),
               ],
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 18),
               _buildLabel('Driver License Number'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _licenseCtrl,
-                hint: 'Enter license number',
+              _buildTextField(controller: _licenseCtrl, hint: 'Enter license number',
                 prefixIcon: Icons.credit_card_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter your license number'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your license number' : null),
+              const SizedBox(height: 18),
               _buildLabel('License Expiry Date'),
               const SizedBox(height: 8),
-              _dateField(
-                hint: 'Select expiry date',
-                value: _licenseExpiry,
-                icon: Icons.event_outlined,
-                onTap: () => _pickDate(isExpiry: true),
-              ),
-
+              _dateField(hint: 'Select expiry date', value: _licenseExpiry,
+                icon: Icons.event_outlined, onTap: () => _pickDate(isExpiry: true)),
               if (auth.errorMessage != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 _errorBox(auth.errorMessage!),
               ],
               const SizedBox(height: 28),
-
               Row(
                 children: [
                   TextButton.icon(
                     onPressed: _prevStep,
-                    icon: const Icon(Icons.arrow_back, size: 16),
-                    label: const Text('Back'),
-                    style: TextButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                    label: Text('Back', style: GoogleFonts.outfit()),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_nationalIdImage == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Please upload your National ID photo')),
-                            );
-                            return;
-                          }
-                          if (_licenseExpiry == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Please select your license expiry date')),
-                            );
-                            return;
-                          }
-                          _nextStep();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28)),
-                        ),
-                        child: const Text(
-                          'Next',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    child: _GradientButton(
+                      label: 'Continue',
+                      isLoading: false,
+                      onTap: () {
+                        if (_nationalIdImage == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: const Text('Please upload your National ID photo'),
+                              backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+                          return;
+                        }
+                        if (_licenseExpiry == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: const Text('Please select your license expiry date'),
+                              backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
+                          return;
+                        }
+                        _nextStep();
+                      },
                     ),
                   ),
                 ],
@@ -609,12 +431,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Step 3: Vehicle Info ────────────────────────────────────
-
   Widget _step3() {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
         child: Form(
           key: _step3Key,
           child: Column(
@@ -623,135 +443,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _buildLabel('Vehicle Type'),
               const SizedBox(height: 8),
               _styledDropdown<String>(
-                value: _vehicleType,
-                hint: 'Select vehicle type',
+                value: _vehicleType, hint: 'Select vehicle type',
                 prefixIcon: Icons.directions_car_outlined,
-                items: _vehicleTypes
-                    .map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2)))
-                    .toList(),
+                items: _vehicleTypes.map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
                 onChanged: (v) => setState(() => _vehicleType = v),
-                validator: (v) => v == null ? 'Select your vehicle type' : null,
-              ),
-              const SizedBox(height: 16),
-
+                validator: (v) => v == null ? 'Select your vehicle type' : null),
+              const SizedBox(height: 18),
               _buildLabel('Plate Number'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _plateCtrl,
-                hint: 'e.g. 3-12345',
-                prefixIcon: Icons.pin_outlined,
-                textCapitalization: TextCapitalization.characters,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter your plate number'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
+              _buildTextField(controller: _plateCtrl, hint: 'e.g. 3-12345',
+                prefixIcon: Icons.pin_outlined, textCapitalization: TextCapitalization.characters,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your plate number' : null),
+              const SizedBox(height: 18),
               _buildLabel('Vehicle Color'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _colorCtrl,
-                hint: 'e.g. Blue',
-                prefixIcon: Icons.palette_outlined,
-                textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter vehicle color'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
+              _buildTextField(controller: _colorCtrl, hint: 'e.g. Blue',
+                prefixIcon: Icons.palette_outlined, textCapitalization: TextCapitalization.words,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter vehicle color' : null),
+              const SizedBox(height: 18),
               _buildLabel('Vehicle Model / Year'),
               const SizedBox(height: 8),
-              _buildTextField(
-                controller: _modelCtrl,
-                hint: 'e.g. Bajaj RE 2022',
-                prefixIcon: Icons.build_outlined,
-                textCapitalization: TextCapitalization.words,
-              ),
-              const SizedBox(height: 16),
-
+              _buildTextField(controller: _modelCtrl, hint: 'e.g. Bajaj RE 2022',
+                prefixIcon: Icons.build_outlined, textCapitalization: TextCapitalization.words),
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  color: AppColors.accent.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
                 ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline,
-                            size: 16, color: AppColors.primary),
-                        SizedBox(width: 6),
-                        Text(
-                          'After registration',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                              fontSize: 13),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Your account will be reviewed by the admin team before activation. You\'ll be notified once approved.',
-                      style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          height: 1.5),
+                    Container(width: 36, height: 36,
+                      decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
+                      child: const Icon(Icons.info_outline_rounded, size: 18, color: AppColors.accent)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Your account will be reviewed by the admin team before activation.',
+                        style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                      ),
                     ),
                   ],
                 ),
               ),
-
               if (auth.errorMessage != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 _errorBox(auth.errorMessage!),
               ],
               const SizedBox(height: 28),
-
               Row(
                 children: [
                   TextButton.icon(
                     onPressed: auth.isLoading ? null : _prevStep,
-                    icon: const Icon(Icons.arrow_back, size: 16),
-                    label: const Text('Back'),
-                    style: TextButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary),
+                    icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                    label: Text('Back', style: GoogleFonts.outfit()),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: auth.isLoading ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
-                          disabledBackgroundColor: AppColors.primaryLight,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28)),
-                        ),
-                        child: auth.isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                    color: AppColors.textOnPrimary,
-                                    strokeWidth: 2.5),
-                              )
-                            : const Text(
-                                'Submit Registration',
-                                style: TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w600),
-                              ),
-                      ),
-                    ),
-                  ),
+                  Expanded(child: _GradientButton(label: 'Submit Registration', isLoading: auth.isLoading, onTap: auth.isLoading ? null : _submit)),
                 ],
               ),
             ],
@@ -761,18 +512,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Shared helpers ──────────────────────────────────────────
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
+  Widget _buildLabel(String text) => Text(text,
+    style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400,
+      color: AppColors.textSecondary, letterSpacing: 0.3));
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -790,73 +532,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       obscureText: obscureText,
       textCapitalization: textCapitalization,
       validator: validator,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+      style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textHint),
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: AppColors.textHint, size: 20)
-            : null,
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: AppColors.inputFill,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-        ),
-        errorStyle: const TextStyle(fontSize: 12),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: AppColors.textHint),
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.primary.withValues(alpha: 0.5), size: 20) : null,
+        suffixIcon: suffixIcon != null ? Padding(padding: const EdgeInsets.only(right: 12), child: suffixIcon) : null,
+        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        filled: true, fillColor: AppColors.inputFill,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border, width: 1)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error, width: 1)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error, width: 2)),
+        errorStyle: GoogleFonts.outfit(fontSize: 12),
       ),
     );
   }
 
-  Widget _dateField({
-    required String hint,
-    required DateTime? value,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _dateField({required String hint, required DateTime? value, required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
           color: AppColors.inputFill,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: value != null
-                ? AppColors.primary.withValues(alpha: 0.6)
-                : Colors.transparent,
-            width: value != null ? 1.5 : 0,
-          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: value != null ? AppColors.primary : AppColors.border, width: value != null ? 2 : 1),
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.textHint, size: 20),
+            Icon(icon, color: AppColors.primary.withValues(alpha: 0.5), size: 20),
             const SizedBox(width: 12),
             Text(
               value != null ? DateFormat('dd MMM yyyy').format(value) : hint,
-              style: TextStyle(
-                fontSize: 14,
-                color: value != null ? AppColors.textPrimary : AppColors.textHint,
-              ),
+              style: GoogleFonts.outfit(fontSize: 14, color: value != null ? AppColors.textPrimary : AppColors.textHint),
             ),
           ],
         ),
@@ -865,80 +576,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _styledDropdown<T>({
-    required T? value,
-    required String hint,
-    required IconData prefixIcon,
-    required List<DropdownMenuItem<T>> items,
-    required void Function(T?) onChanged,
+    required T? value, required String hint, required IconData prefixIcon,
+    required List<DropdownMenuItem<T>> items, required void Function(T?) onChanged,
     String? Function(T?)? validator,
   }) {
     return DropdownButtonFormField<T>(
-      key: ValueKey(value),
-      initialValue: value,
-      items: items,
-      onChanged: onChanged,
-      validator: validator,
-      style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-      icon: const Icon(Icons.keyboard_arrow_down,
-          color: AppColors.textHint, size: 20),
+      key: ValueKey(value), initialValue: value, items: items,
+      onChanged: onChanged, validator: validator,
+      style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textHint, size: 20),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(fontSize: 14, color: AppColors.textHint),
-        prefixIcon: Icon(prefixIcon, color: AppColors.textHint, size: 20),
-        filled: true,
-        fillColor: AppColors.inputFill,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-        ),
-        errorStyle: const TextStyle(fontSize: 12),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: AppColors.textHint),
+        prefixIcon: Icon(prefixIcon, color: AppColors.primary.withValues(alpha: 0.5), size: 20),
+        filled: true, fillColor: AppColors.inputFill,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border, width: 1)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error, width: 1)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error, width: 2)),
+        errorStyle: GoogleFonts.outfit(fontSize: 12),
       ),
     );
   }
 
-  Widget _errorBox(String message) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(color: AppColors.error, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _errorBox(String message) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: AppColors.error.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+    ),
+    child: Row(children: [
+      const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+      const SizedBox(width: 10),
+      Expanded(child: Text(message, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13))),
+    ]),
+  );
 }
-
-// ── Step progress indicator ─────────────────────────────────────
 
 class _StepIndicator extends StatelessWidget {
   final int currentStep;
@@ -947,52 +623,71 @@ class _StepIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const labels = ['Account', 'Personal', 'Vehicle'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      child: Row(
-        children: List.generate(3, (i) {
-          final isActive = i == currentStep;
-          final isDone = i < currentStep;
-          return Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDone || isActive
-                              ? AppColors.primary
-                              : AppColors.border,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+    return Row(
+      children: List.generate(3, (i) {
+        final isActive = i == currentStep;
+        final isDone = i < currentStep;
+        return Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDone ? AppColors.accent : isActive ? Colors.white : Colors.white30,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        labels[i],
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: isActive
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                          color: isActive
-                              ? AppColors.primary
-                              : isDone
-                                  ? AppColors.primary
-                                  : AppColors.textHint,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(labels[i],
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: isActive ? FontWeight.w500 : FontWeight.w400,
+                        color: isDone ? AppColors.accent : isActive ? Colors.white : Colors.white38,
+                      )),
+                  ],
                 ),
-                if (i < 2) const SizedBox(width: 6),
-              ],
-            ),
-          );
-        }),
+              ),
+              if (i < 2) const SizedBox(width: 6),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _GradientButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onTap;
+  const _GradientButton({required this.label, required this.isLoading, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: isLoading ? null : AppColors.primaryGradient,
+          color: isLoading ? AppColors.disabled : null,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isLoading ? null : [
+            BoxShadow(color: AppColors.primary.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6)),
+          ],
+        ),
+        child: Center(
+          child: isLoading
+              ? const SizedBox(width: 22, height: 22,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+              : Text(label, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+        ),
       ),
     );
   }
 }
+

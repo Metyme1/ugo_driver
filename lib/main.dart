@@ -18,7 +18,7 @@ void main() async {
 
   ApiService().init();
 
-  FcmService.instance.init();
+  await FcmService.instance.init();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/notifications_provider.dart';
-import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -29,59 +29,78 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
-        title: const Text('Notifications'),
+        title: Text('Notifications', style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
         actions: [
           if (provider.unreadCount > 0)
             TextButton(
               onPressed: () => provider.markAllAsRead(),
-              child: const Text('Mark all read', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              child: Text('Mark all read',
+                style: GoogleFonts.outfit(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w400)),
             ),
         ],
       ),
       body: provider.isLoading
           ? const LoadingWidget(message: 'Loading notifications...')
           : provider.notifications.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.notifications_none, size: 72, color: AppColors.textSecondary),
-                      SizedBox(height: 16),
-                      Text('No notifications yet', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                      Container(
+                        width: 90, height: 90,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.07),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.notifications_none_rounded, size: 44, color: AppColors.primary),
+                      ),
+                      const SizedBox(height: 20),
+                      Text('All caught up!',
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.textPrimary)),
+                      const SizedBox(height: 6),
+                      Text('No notifications yet',
+                        style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
                     ],
                   ),
                 )
               : RefreshIndicator(
                   onRefresh: () => provider.loadNotifications(),
+                  color: AppColors.primary,
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                     itemCount: provider.notifications.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, i) {
                       final n = provider.notifications[i];
-                      final timeAgo = _timeAgo(n.createdAt);
+                      final color = _iconColor(n.type);
 
-                      return InkWell(
-                        onTap: () {
-                          if (!n.isRead) provider.markAsRead(n.id);
-                        },
+                      return GestureDetector(
+                        onTap: () { if (!n.isRead) provider.markAsRead(n.id); },
                         child: Container(
-                          color: n.isRead ? null : AppColors.primary.withValues(alpha: 0.04),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: n.isRead ? Colors.white : AppColors.primary.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: n.isRead ? AppColors.border.withValues(alpha: 0.5) : AppColors.primary.withValues(alpha: 0.15),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: n.isRead ? 0.03 : 0.06),
+                                blurRadius: 8, offset: const Offset(0, 2)),
+                            ],
+                          ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Builder(builder: (ctx) => Container(
-                                width: ctx.iconBox, height: ctx.iconBox,
+                              Container(
+                                width: 44, height: 44,
                                 decoration: BoxDecoration(
-                                  color: _iconColor(n.type).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: color.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(13),
                                 ),
-                                child: Icon(_iconData(n.type), color: _iconColor(n.type), size: ctx.iconGlyph),
-                              )),
+                                child: Icon(_iconData(n.type), color: color, size: 20),
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -90,13 +109,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     Row(
                                       children: [
                                         Expanded(
-                                          child: Text(
-                                            n.title,
-                                            style: TextStyle(
-                                              fontWeight: n.isRead ? FontWeight.normal : FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
+                                          child: Text(n.title,
+                                            style: GoogleFonts.outfit(
+                                              fontWeight: n.isRead ? FontWeight.w500 : FontWeight.w500,
+                                              fontSize: 14, color: AppColors.textPrimary)),
                                         ),
                                         if (!n.isRead)
                                           Container(
@@ -105,10 +121,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                           ),
                                       ],
                                     ),
-                                    const SizedBox(height: 3),
-                                    Text(n.body, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
                                     const SizedBox(height: 4),
-                                    Text(timeAgo, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                                    Text(n.body,
+                                      style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
+                                    const SizedBox(height: 6),
+                                    Text(_timeAgo(n.createdAt),
+                                      style: GoogleFonts.outfit(color: AppColors.textHint, fontSize: 11)),
                                   ],
                                 ),
                               ),
@@ -124,10 +142,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   IconData _iconData(String? type) {
     switch (type) {
-      case 'PACKAGE_VERIFIED': return Icons.check_circle_outline;
+      case 'PACKAGE_VERIFIED': return Icons.check_circle_outline_rounded;
       case 'PACKAGE_REJECTED': return Icons.cancel_outlined;
-      case 'DRIVER_ASSIGNED': return Icons.directions_car;
-      case 'GROUP_UPDATE': return Icons.groups;
+      case 'DRIVER_ASSIGNED': return Icons.directions_car_rounded;
+      case 'GROUP_UPDATE': return Icons.groups_rounded;
       default: return Icons.notifications_outlined;
     }
   }
@@ -151,3 +169,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return DateFormat('MMM d').format(dt);
   }
 }
+
+
+

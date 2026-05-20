@@ -27,7 +27,7 @@ class FcmService {
     try {
       final token = await _messaging.getToken();
       if (token != null) {
-        await ApiService().post(ApiConfig.fcmToken, data: {'fcm_token': token});
+        await ApiService().post(ApiConfig.fcmToken, data: {'token': token});
       }
     } catch (_) {}
   }

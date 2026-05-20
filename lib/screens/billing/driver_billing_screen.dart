@@ -1,9 +1,28 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../models/driver_billing_model.dart';
 import '../../providers/driver_billing_provider.dart';
+
+// â”€â”€â”€ Shared date helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+const _monthNamesFull = [
+  '', 'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const _monthNamesShort = [
+  '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+String _fmtShortDate(DateTime d) => '${_monthNamesShort[d.month]} ${d.day}, ${d.year}';
+String _fmtFullDate(DateTime d) => '${_monthNamesFull[d.month]} ${d.day}, ${d.year}';
+String _dayKey(DateTime dt) =>
+    '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+
+// â”€â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class DriverBillingScreen extends StatefulWidget {
   const DriverBillingScreen({super.key});
@@ -19,7 +38,7 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    _tabs = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DriverBillingProvider>().loadAll();
     });
@@ -37,19 +56,19 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('My Earnings',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        iconTheme: const IconThemeData(color: AppColors.primary),
         bottom: TabBar(
           controller: _tabs,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          indicatorColor: Colors.white,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textHint,
+          indicatorColor: AppColors.primary,
           indicatorWeight: 3,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(text: 'Summary'),
+            Tab(text: 'Daily'),
             Tab(text: 'Earnings'),
             Tab(text: 'Platform Fee'),
           ],
@@ -63,6 +82,7 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
               controller: _tabs,
               children: const [
                 _SummaryTab(),
+                _DailyEarningsTab(),
                 _EarningsTab(),
                 _PlatformFeeTab(),
               ],
@@ -74,9 +94,9 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Month selector
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _MonthSelector extends StatelessWidget {
   static final List<String> _months = _buildMonths();
@@ -102,22 +122,20 @@ class _MonthSelector extends StatelessWidget {
       builder: (_, p, __) {
         final idx = _months.indexOf(p.selectedMonth);
         return Container(
-          decoration: const BoxDecoration(gradient: AppColors.headerGradient),
-          padding: const EdgeInsets.only(bottom: 10),
+          decoration: const BoxDecoration(color: Colors.white, border: Border(bottom: BorderSide(color: AppColors.border))), padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.chevron_left, color: Colors.white),
+                icon: const Icon(Icons.chevron_left, color: AppColors.primary),
                 onPressed: idx > 0 ? () => p.selectMonth(_months[idx - 1]) : null,
               ),
               Text(
                 _label(p.selectedMonth),
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500, fontSize: 16),
               ),
               IconButton(
-                icon: const Icon(Icons.chevron_right, color: Colors.white),
+                icon: const Icon(Icons.chevron_right, color: AppColors.primary),
                 onPressed: idx < _months.length - 1
                     ? () => p.selectMonth(_months[idx + 1])
                     : null,
@@ -130,9 +148,9 @@ class _MonthSelector extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB 1 — Summary
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// TAB 1 â€” Summary
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _SummaryTab extends StatelessWidget {
   const _SummaryTab();
@@ -188,7 +206,7 @@ class _BreakdownCard extends StatelessWidget {
               Icon(Icons.account_balance_wallet, color: AppColors.primary),
               SizedBox(width: 8),
               Text('Revenue Breakdown',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 20),
@@ -267,7 +285,7 @@ class _BRow extends StatelessWidget {
             children: [
               Text(label,
                   style: TextStyle(
-                      fontWeight: large ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: large ? FontWeight.w500 : FontWeight.w500,
                       fontSize: large ? 15 : 14)),
               Text(sub,
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
@@ -278,7 +296,7 @@ class _BRow extends StatelessWidget {
           '${negative ? '-' : '+'} ${amount.toStringAsFixed(0)} ETB',
           style: TextStyle(
               color: color,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w500,
               fontSize: large ? 17 : 15),
         ),
       ],
@@ -340,7 +358,7 @@ class _StatBox extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(value,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500, color: color)),
               Text(label,
                   style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
             ],
@@ -376,14 +394,14 @@ class _PayoutCard extends StatelessWidget {
               Icon(Icons.payments_outlined, color: AppColors.primary),
               SizedBox(width: 8),
               Text('Estimated Payout',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             '${summary.estimatedPayout.toStringAsFixed(0)} ETB',
             style: const TextStyle(
-                fontSize: 34, fontWeight: FontWeight.bold, color: AppColors.success),
+                fontSize: 34, fontWeight: FontWeight.w500, color: AppColors.success),
           ),
           const Text('Take-home this month',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
@@ -417,13 +435,13 @@ class _PayoutCard extends StatelessWidget {
                           child: Text(feeLabel,
                               style: TextStyle(
                                   color: feeColor, fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
+                                  fontWeight: FontWeight.w500)),
                         ),
                         const SizedBox(width: 8),
                         Text('- ${summary.driverPlatformFee.toStringAsFixed(0)} ETB',
                             style: const TextStyle(
                                 color: AppColors.error,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w400,
                                 fontSize: 13)),
                       ],
                     ),
@@ -437,7 +455,8 @@ class _PayoutCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => DefaultTabController.of(context).animateTo(2),
+                // Platform Fee is now tab index 3
+                onPressed: () => DefaultTabController.of(context).animateTo(3),
                 icon: const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
                 label: const Text('Pay Platform Fee',
                     style: TextStyle(color: AppColors.warning)),
@@ -475,15 +494,1318 @@ class _PRow extends StatelessWidget {
       children: [
         Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         Text(value,
-            style: TextStyle(color: valueColor, fontWeight: FontWeight.bold, fontSize: 13)),
+            style: TextStyle(color: valueColor, fontWeight: FontWeight.w500, fontSize: 13)),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB 2 — Earnings list
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// TAB 2 â€” Daily earnings (package + subscription toggle with calendar)
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _DailyEarningsTab extends StatefulWidget {
+  const _DailyEarningsTab();
+
+  @override
+  State<_DailyEarningsTab> createState() => _DailyEarningsTabState();
+}
+
+class _DailyEarningsTabState extends State<_DailyEarningsTab> {
+  bool _showPackage = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<DriverBillingProvider>(
+      builder: (_, p, __) {
+        if (p.earningsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final packageRecs = p.earnings
+            .where((e) => e.type == 'package_scan' || e.type == 'package')
+            .toList();
+        final subRecs = p.earnings
+            .where((e) => e.type == 'trip_earning')
+            .toList();
+
+        final packageTotal = packageRecs.fold(0.0, (s, r) => s + r.netAmount);
+        final subTotal = subRecs.fold(0.0, (s, r) => s + r.netAmount);
+
+        final currentRecs = _showPackage ? packageRecs : subRecs;
+        final byDay = <String, List<DriverEarningRecord>>{};
+        for (final r in currentRecs) {
+          if (r.earnedAt == null) continue;
+          (byDay[_dayKey(r.earnedAt!)] ??= []).add(r);
+        }
+
+        final parts = p.selectedMonth.split('-');
+        final calMonth =
+            DateTime(int.parse(parts[0]), int.parse(parts[1]));
+
+        return RefreshIndicator(
+          onRefresh: p.loadEarnings,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                if (p.earningsError != null) _ErrorBanner(p.earningsError!),
+                _DailySummaryBar(
+                  packageTotal: packageTotal,
+                  subTotal: subTotal,
+                ),
+                const SizedBox(height: 14),
+                _EarningsToggle(
+                  showPackage: _showPackage,
+                  packageTotal: packageTotal,
+                  subTotal: subTotal,
+                  onToggle: (v) => setState(() => _showPackage = v),
+                ),
+                const SizedBox(height: 14),
+                _EarningsCalendar(
+                  month: calMonth,
+                  byDay: byDay,
+                  isPackage: _showPackage,
+                  onDateTapped: (date) {
+                    final dayEarnings = byDay[_dayKey(date)] ?? [];
+                    _showDayDetail(context, date, dayEarnings, _showPackage, p);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDayDetail(
+    BuildContext context,
+    DateTime date,
+    List<DriverEarningRecord> dayEarnings,
+    bool isPackage,
+    DriverBillingProvider p,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => isPackage
+          ? _PackageDaySheet(date: date, earnings: dayEarnings)
+          : _SubDaySheet(date: date, earnings: dayEarnings, provider: p),
+    );
+  }
+}
+
+// â”€â”€ Daily summary bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _DailySummaryBar extends StatelessWidget {
+  final double packageTotal;
+  final double subTotal;
+
+  const _DailySummaryBar({
+    required this.packageTotal,
+    required this.subTotal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final combined = packageTotal + subTotal;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text('Total Earned This Month',
+              style: TextStyle(color: Colors.white70, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(
+            'ETB ${combined.toStringAsFixed(0)}',
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryMini(
+                  label: 'Packages',
+                  amount: packageTotal,
+                  icon: Icons.qr_code_scanner,
+                ),
+              ),
+              Container(width: 1, height: 36, color: Colors.white30),
+              Expanded(
+                child: _SummaryMini(
+                  label: 'Subscription',
+                  amount: subTotal,
+                  icon: Icons.directions_bus_outlined,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryMini extends StatelessWidget {
+  final String label;
+  final double amount;
+  final IconData icon;
+
+  const _SummaryMini({
+    required this.label,
+    required this.amount,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white70, size: 16),
+        const SizedBox(height: 4),
+        Text(
+          'ETB ${amount.toStringAsFixed(0)}',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        Text(label,
+            style: const TextStyle(color: Colors.white60, fontSize: 10)),
+      ],
+    );
+  }
+}
+
+// â”€â”€ Toggle chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _EarningsToggle extends StatelessWidget {
+  final bool showPackage;
+  final double packageTotal;
+  final double subTotal;
+  final void Function(bool) onToggle;
+
+  const _EarningsToggle({
+    required this.showPackage,
+    required this.packageTotal,
+    required this.subTotal,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
+        ],
+      ),
+      child: Row(
+        children: [
+          _ToggleBtn(
+            label: 'Package Earnings',
+            icon: Icons.qr_code_scanner,
+            amount: packageTotal,
+            selected: showPackage,
+            color: AppColors.primary,
+            onTap: () => onToggle(true),
+          ),
+          _ToggleBtn(
+            label: 'Subscription',
+            icon: Icons.route_outlined,
+            amount: subTotal,
+            selected: !showPackage,
+            color: AppColors.success,
+            onTap: () => onToggle(false),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final double amount;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ToggleBtn({
+    required this.label,
+    required this.icon,
+    required this.amount,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? color : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon,
+                  size: 16,
+                  color: selected ? Colors.white : AppColors.textHint),
+              const SizedBox(width: 6),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                          color: selected ? Colors.white : AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400)),
+                  Text('ETB ${amount.toStringAsFixed(0)}',
+                      style: TextStyle(
+                          color: selected ? Colors.white70 : AppColors.textHint,
+                          fontSize: 10)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// â”€â”€ Earnings calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _EarningsCalendar extends StatelessWidget {
+  final DateTime month;
+  final Map<String, List<DriverEarningRecord>> byDay;
+  final bool isPackage;
+  final void Function(DateTime) onDateTapped;
+
+  const _EarningsCalendar({
+    required this.month,
+    required this.byDay,
+    required this.isPackage,
+    required this.onDateTapped,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final firstWeekday = DateTime(month.year, month.month, 1).weekday % 7;
+    final color = isPackage ? AppColors.primary : AppColors.success;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 36, height: 36,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isPackage ? Icons.qr_code_scanner : Icons.route_outlined,
+                    color: color, size: 18,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isPackage ? 'Package Earnings' : 'Subscription Earnings',
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary),
+                      ),
+                      Text(
+                        '${_monthNamesFull[month.month]} ${month.year}  Â·  Tap a day for details',
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.border),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Row(
+                  children: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+                      .map((d) => Expanded(
+                            child: Center(
+                              child: Text(d,
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.textHint)),
+                            ),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 4),
+                _buildGrid(now, daysInMonth, firstWeekday, color),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+            child: Row(
+              children: [
+                Container(
+                    width: 8, height: 8,
+                    decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                const SizedBox(width: 4),
+                const Text('Has earnings',
+                    style: TextStyle(fontSize: 10, color: AppColors.textHint)),
+                const SizedBox(width: 12),
+                const Icon(Icons.touch_app_outlined, size: 10, color: AppColors.textHint),
+                const SizedBox(width: 4),
+                const Text('Tap for details',
+                    style: TextStyle(fontSize: 10, color: AppColors.textHint)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrid(
+      DateTime now, int daysInMonth, int firstWeekday, Color color) {
+    final totalCells = firstWeekday + daysInMonth;
+    final rows = (totalCells / 7).ceil();
+    final cells = <Widget>[];
+
+    for (var i = 0; i < rows * 7; i++) {
+      final dayNum = i - firstWeekday + 1;
+      if (dayNum < 1 || dayNum > daysInMonth) {
+        cells.add(const Expanded(child: SizedBox()));
+        continue;
+      }
+
+      final thisDate = DateTime(month.year, month.month, dayNum);
+      final isToday = dayNum == now.day &&
+          month.month == now.month &&
+          month.year == now.year;
+      final key = _dayKey(thisDate);
+      final hasEarnings = (byDay[key] ?? []).isNotEmpty;
+
+      cells.add(Expanded(
+        child: GestureDetector(
+          onTap: () => onDateTapped(thisDate),
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              margin: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                color: isToday
+                    ? color
+                    : hasEarnings
+                        ? color.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    '$dayNum',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: isToday || hasEarnings
+                          ? FontWeight.w500
+                          : FontWeight.normal,
+                      color: isToday
+                          ? Colors.white
+                          : hasEarnings
+                              ? color
+                              : AppColors.textPrimary,
+                    ),
+                  ),
+                  if (hasEarnings && !isToday)
+                    Positioned(
+                      bottom: 2,
+                      child: Container(
+                        width: 4, height: 4,
+                        decoration: BoxDecoration(
+                            color: color, shape: BoxShape.circle),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    final rowWidgets = <Widget>[];
+    for (var r = 0; r < rows; r++) {
+      rowWidgets.add(Row(children: cells.sublist(r * 7, (r + 1) * 7)));
+    }
+    return Column(children: rowWidgets);
+  }
+}
+
+// â”€â”€ Package day detail sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _PackageDaySheet extends StatelessWidget {
+  final DateTime date;
+  final List<DriverEarningRecord> earnings;
+
+  const _PackageDaySheet({required this.date, required this.earnings});
+
+  @override
+  Widget build(BuildContext context) {
+    final total = earnings.fold(0.0, (s, r) => s + r.netAmount);
+    final gross = earnings.fold(0.0, (s, r) => s + r.grossAmount);
+    final commission = earnings.fold(0.0, (s, r) => s + r.ugoCommission);
+    final isEmpty = earnings.isEmpty;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                width: 46, height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.qr_code_scanner,
+                    color: AppColors.primary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_fmtFullDate(date),
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary)),
+                  Text(
+                    '${earnings.length} package${earnings.length == 1 ? '' : 's'} scanned',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textHint),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12)),
+              child: const Column(
+                children: [
+                  Icon(Icons.qr_code_2, size: 36, color: AppColors.textHint),
+                  SizedBox(height: 8),
+                  Text('No packages scanned on this day',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textPrimary)),
+                ],
+              ),
+            )
+          else ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Day's Package Earnings",
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary)),
+                        Text('ETB ${total.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.primary)),
+                        Text(
+                          'Gross: ${gross.toStringAsFixed(0)}  âˆ’  Commission: ${commission.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textHint),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${earnings.length}\nscans',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: AppColors.primary,
+                          height: 1.2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Scanned Packages',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            ...earnings.map((r) => _PackageScanRow(record: r)),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _openWithdrawSheet(context, total, date);
+                },
+                icon: const Icon(Icons.account_balance_wallet_outlined,
+                    size: 18),
+                label:
+                    Text('Withdraw  ETB ${total.toStringAsFixed(0)}'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.success,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _openWithdrawSheet(BuildContext context, double amount, DateTime date) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _WithdrawSheet(amount: amount, date: date),
+    );
+  }
+}
+
+class _PackageScanRow extends StatelessWidget {
+  final DriverEarningRecord record;
+  const _PackageScanRow({required this.record});
+
+  @override
+  Widget build(BuildContext context) {
+    final time = record.earnedAt != null
+        ? '${record.earnedAt!.hour.toString().padLeft(2, '0')}:${record.earnedAt!.minute.toString().padLeft(2, '0')}'
+        : '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+        border:
+            Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.qr_code, size: 16, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  record.groupName ?? record.description ?? 'Package scan',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary),
+                ),
+                if (time.isNotEmpty)
+                  Text(time,
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textHint)),
+              ],
+            ),
+          ),
+          Text(
+            '+ETB ${record.netAmount.toStringAsFixed(0)}',
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.success),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€ Subscription day detail sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _SubDaySheet extends StatelessWidget {
+  final DateTime date;
+  final List<DriverEarningRecord> earnings;
+  final DriverBillingProvider provider;
+
+  const _SubDaySheet({
+    required this.date,
+    required this.earnings,
+    required this.provider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total = earnings.fold(0.0, (s, r) => s + r.netAmount);
+    final gross = earnings.fold(0.0, (s, r) => s + r.grossAmount);
+    final commission = earnings.fold(0.0, (s, r) => s + r.ugoCommission);
+    final isEmpty = earnings.isEmpty;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                width: 46, height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.route_outlined,
+                    color: AppColors.success, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_fmtFullDate(date),
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary)),
+                  Text(
+                    '${earnings.length} route${earnings.length == 1 ? '' : 's'} completed',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textHint),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (isEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12)),
+              child: const Column(
+                children: [
+                  Icon(Icons.route, size: 36, color: AppColors.textHint),
+                  SizedBox(height: 8),
+                  Text('No subscription routes on this day',
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textPrimary)),
+                ],
+              ),
+            )
+          else ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Day's Route Earnings",
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary)),
+                        Text('ETB ${total.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.success)),
+                        Text(
+                          'Gross: ${gross.toStringAsFixed(0)}  âˆ’  Commission: ${commission.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textHint),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${earnings.length}\nroutes',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: AppColors.success,
+                          height: 1.2),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Routes Completed',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            ...earnings.map((r) => _SubRouteRow(record: r)),
+          ],
+          const SizedBox(height: 16),
+          _PaymentWindowCard(
+            monthYear: provider.selectedMonth,
+            platformStatus:
+                provider.currentMonthPlatformSub?.status ?? 'none',
+            feeAmount:
+                provider.currentMonthPlatformSub?.fee ?? 0,
+            estimatedPayout: provider.summary?.estimatedPayout ?? 0,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubRouteRow extends StatelessWidget {
+  final DriverEarningRecord record;
+  const _SubRouteRow({required this.record});
+
+  static const _routeLabels = {
+    'morning_to_school':   'Morning â†’ School',
+    'midday_to_home':      'Midday â†’ Home',
+    'afternoon_to_school': 'Afternoon â†’ School',
+    'afternoon_to_home':   'Afternoon â†’ Home',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final routeLabel =
+        _routeLabels[record.routeType] ?? record.routeType ?? 'Route';
+    final time = record.earnedAt != null
+        ? '${record.earnedAt!.hour.toString().padLeft(2, '0')}:${record.earnedAt!.minute.toString().padLeft(2, '0')}'
+        : '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+        border:
+            Border.all(color: AppColors.success.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, size: 16, color: AppColors.success),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(record.groupName ?? 'Group',
+                    style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary)),
+                Text('$routeLabel  $time',
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textHint)),
+              ],
+            ),
+          ),
+          Text(
+            '+ETB ${record.netAmount.toStringAsFixed(0)}',
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.success),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€ Payment window card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _PaymentWindowCard extends StatelessWidget {
+  final String monthYear;
+  final String platformStatus;
+  final double feeAmount;
+  final double estimatedPayout;
+
+  const _PaymentWindowCard({
+    required this.monthYear,
+    required this.platformStatus,
+    required this.feeAmount,
+    required this.estimatedPayout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = monthYear.split('-');
+    final year = int.parse(parts[0]);
+    final month = int.parse(parts[1]);
+    // Drivers are paid from the 1st to 5th of the following month
+    final windowStart = DateTime(year, month + 1, 1);
+    final windowEnd = DateTime(year, month + 1, 5);
+    final now = DateTime.now();
+    final isOpen = now.isAfter(windowStart) && now.isBefore(windowEnd);
+    final isPast = now.isAfter(windowEnd);
+    final daysUntil = windowStart.difference(now).inDays;
+
+    final borderColor = isOpen
+        ? AppColors.success.withValues(alpha: 0.3)
+        : AppColors.border;
+    final bgColor = isOpen
+        ? AppColors.success.withValues(alpha: 0.07)
+        : AppColors.background;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isOpen ? Icons.payments_outlined : Icons.schedule,
+                size: 16,
+                color: isOpen ? AppColors.success : AppColors.textHint,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Payment Window',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isOpen
+                        ? AppColors.success
+                        : AppColors.textPrimary),
+              ),
+              const Spacer(),
+              if (isOpen)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('OPEN NOW',
+                      style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.success)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${_monthNamesFull[month]} earnings are paid out:',
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${_fmtShortDate(windowStart)}  â€”  ${_fmtShortDate(windowEnd)}',
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isOpen
+                    ? AppColors.success
+                    : AppColors.textPrimary),
+          ),
+          if (!isOpen && !isPast && daysUntil >= 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'Opens in $daysUntil day${daysUntil == 1 ? '' : 's'}',
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textHint),
+              ),
+            )
+          else if (isPast)
+            const Padding(
+              padding: EdgeInsets.only(top: 4),
+              child: Text(
+                'Payment window for this period has closed.',
+                style: TextStyle(fontSize: 11, color: AppColors.textHint),
+              ),
+            ),
+          if (estimatedPayout > 0) ...[
+            const SizedBox(height: 10),
+            const Divider(height: 1, color: AppColors.divider),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Estimated payout',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  'ETB ${estimatedPayout.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.success),
+                ),
+              ],
+            ),
+          ],
+          if (platformStatus == 'due' || platformStatus == 'overdue') ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded,
+                    size: 13, color: AppColors.warning),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'Platform fee (ETB ${feeAmount.toStringAsFixed(0)}) will be deducted from payout.',
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.warning),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€ Withdraw sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _WithdrawSheet extends StatefulWidget {
+  final double amount;
+  final DateTime date;
+
+  const _WithdrawSheet({required this.amount, required this.date});
+
+  @override
+  State<_WithdrawSheet> createState() => _WithdrawSheetState();
+}
+
+class _WithdrawSheetState extends State<_WithdrawSheet> {
+  static const _banks = ['CBE', 'Awash', 'Dashen', 'BoA', 'Telebirr'];
+  String? _bank;
+  final _accountCtrl = TextEditingController();
+  bool _submitted = false;
+
+  @override
+  void dispose() {
+    _accountCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_submitted) {
+      return Padding(
+        padding: const EdgeInsets.all(36),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle,
+                color: AppColors.success, size: 64),
+            const SizedBox(height: 16),
+            const Text('Withdrawal Requested',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary)),
+            const SizedBox(height: 8),
+            Text(
+              'ETB ${widget.amount.toStringAsFixed(0)} will be transferred to your $_bank account. '
+              'Admin will process within 1â€“2 business days.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  height: 1.4),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Done'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('Withdraw Package Earnings',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          Text(
+            '${_fmtFullDate(widget.date)} earnings â€” transferred to your bank account.',
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined,
+                    color: AppColors.success),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Withdrawal Amount',
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 12)),
+                    Text(
+                      'ETB ${widget.amount.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 22,
+                          color: AppColors.success),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text('Select Bank',
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _banks.map((b) {
+              final sel = _bank == b;
+              return ChoiceChip(
+                label: Text(b),
+                selected: sel,
+                selectedColor: AppColors.success,
+                labelStyle: TextStyle(
+                    color: sel ? Colors.white : AppColors.textPrimary,
+                    fontWeight: FontWeight.w500),
+                onSelected: (_) => setState(() => _bank = b),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          const Text('Account Number',
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _accountCtrl,
+            keyboardType: TextInputType.number,
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              hintText: 'Enter your bank account number',
+              prefixIcon: const Icon(Icons.account_balance),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.symmetric(
+                  vertical: 14, horizontal: 14),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _bank != null &&
+                      _accountCtrl.text.trim().isNotEmpty
+                  ? () => setState(() => _submitted = true)
+                  : null,
+              icon: const Icon(Icons.send_outlined),
+              label: const Text('Request Withdrawal',
+                  style: TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w500)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// TAB 3 â€” Earnings list
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EarningsTab extends StatelessWidget {
   const _EarningsTab();
@@ -519,33 +1841,39 @@ class _EarningCard extends StatelessWidget {
   const _EarningCard({required this.earning});
 
   static const _routeLabels = {
-    'morning_to_school':   'Morning → School  07:00',
-    'midday_to_home':      'Midday → Home  12:00',
-    'afternoon_to_school': 'Afternoon → School  14:00',
-    'afternoon_to_home':   'Afternoon → Home  16:30',
+    'morning_to_school':   'Morning â†’ School  07:00',
+    'midday_to_home':      'Midday â†’ Home  12:00',
+    'afternoon_to_school': 'Afternoon â†’ School  14:00',
+    'afternoon_to_home':   'Afternoon â†’ Home  16:30',
   };
 
   static Color _typeColor(String type) {
     switch (type) {
-      case 'trip_earning':        return AppColors.primary;
-      case 'university_ride':     return const Color(0xFF7C3AED);
-      default:                    return AppColors.secondary;
+      case 'trip_earning':    return AppColors.primary;
+      case 'university_ride': return const Color(0xFF7C3AED);
+      case 'package_scan':
+      case 'package':         return AppColors.success;
+      default:                return AppColors.secondary;
     }
   }
 
   static IconData _typeIcon(String type) {
     switch (type) {
-      case 'trip_earning':        return Icons.directions_car_outlined;
-      case 'university_ride':     return Icons.school_outlined;
-      default:                    return Icons.receipt_outlined;
+      case 'trip_earning':    return Icons.directions_car_outlined;
+      case 'university_ride': return Icons.school_outlined;
+      case 'package_scan':
+      case 'package':         return Icons.qr_code_scanner;
+      default:                return Icons.receipt_outlined;
     }
   }
 
   static String _typeTag(String type) {
     switch (type) {
-      case 'trip_earning':        return 'TRIP';
-      case 'university_ride':     return 'UNI';
-      default:                    return 'SUB';
+      case 'trip_earning':    return 'TRIP';
+      case 'university_ride': return 'UNI';
+      case 'package_scan':
+      case 'package':         return 'PKG';
+      default:                return 'SUB';
     }
   }
 
@@ -555,6 +1883,7 @@ class _EarningCard extends StatelessWidget {
     final icon  = _typeIcon(earning.type);
     final isTrip = earning.type == 'trip_earning';
     final isUni  = earning.type == 'university_ride';
+    final isPkg  = earning.type == 'package_scan' || earning.type == 'package';
 
     return Container(
       decoration: BoxDecoration(
@@ -585,7 +1914,7 @@ class _EarningCard extends StatelessWidget {
                         isUni
                             ? (earning.description ?? 'University Ride')
                             : (earning.groupName ?? 'Group'),
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -598,7 +1927,7 @@ class _EarningCard extends StatelessWidget {
                       ),
                       child: Text(
                         _typeTag(earning.type),
-                        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -609,7 +1938,9 @@ class _EarningCard extends StatelessWidget {
                       ? 'Boarding confirmed'
                       : isTrip
                           ? (_routeLabels[earning.routeType] ?? earning.routeType ?? '')
-                          : 'Subscription verified',
+                          : isPkg
+                              ? 'Package scanned'
+                              : 'Subscription verified',
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 if (earning.earnedAt != null) ...[
@@ -638,7 +1969,7 @@ class _EarningCard extends StatelessWidget {
             textAlign: TextAlign.right,
             style: const TextStyle(
                 color: AppColors.success,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 fontSize: 16,
                 height: 1.2),
           ),
@@ -671,9 +2002,9 @@ class _Badge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TAB 3 — Platform Fee
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// TAB 4 â€” Platform Fee
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PlatformFeeTab extends StatelessWidget {
   const _PlatformFeeTab();
@@ -756,7 +2087,7 @@ class _PlatformCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(_monthFull(sub.monthYear),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -766,7 +2097,7 @@ class _PlatformCard extends StatelessWidget {
                   border: Border.all(color: sc),
                 ),
                 child: Text(sl,
-                    style: TextStyle(color: sc, fontSize: 11, fontWeight: FontWeight.bold)),
+                    style: TextStyle(color: sc, fontSize: 11, fontWeight: FontWeight.w500)),
               ),
             ],
           ),
@@ -782,7 +2113,7 @@ class _PlatformCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text('${sub.fee.toStringAsFixed(0)} ETB',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 24)),
+                            fontWeight: FontWeight.w500, fontSize: 24)),
                   ],
                 ),
               ),
@@ -816,7 +2147,7 @@ class _PlatformCard extends StatelessWidget {
                   SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Payment submitted — waiting for admin confirmation.',
+                      'Payment submitted â€” waiting for admin confirmation.',
                       style: TextStyle(color: AppColors.warning, fontSize: 12),
                     ),
                   ),
@@ -859,15 +2190,13 @@ class _PlatformCard extends StatelessWidget {
 
   static String _monthFull(String my) {
     final p = my.split('-');
-    const n = ['', 'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'];
-    return '${n[int.parse(p[1])]} ${p[0]}';
+    return '${_monthNamesFull[int.parse(p[1])]} ${p[0]}';
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Pay-fee bottom sheet
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _PaySheet extends StatefulWidget {
   final DriverPlatformSubscription sub;
@@ -948,14 +2277,13 @@ class _PaySheetState extends State<_PaySheet> {
               ),
               const SizedBox(height: 16),
               const Text('Pay Platform Fee',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               const SizedBox(height: 4),
               Text(
                 'Transfer ${widget.sub.fee.toStringAsFixed(0)} ETB to UGO\'s bank account, then enter the transaction reference.',
                 style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 16),
-              // Amount chip
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
@@ -974,7 +2302,7 @@ class _PaySheetState extends State<_PaySheet> {
                             style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                         Text('${widget.sub.fee.toStringAsFixed(0)} ETB',
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w500,
                                 fontSize: 20,
                                 color: AppColors.primary)),
                       ],
@@ -983,9 +2311,8 @@ class _PaySheetState extends State<_PaySheet> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Step 1
-              const Text('Step 1 — Select Bank',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Step 1 â€” Select Bank',
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8, runSpacing: 8,
@@ -1002,11 +2329,10 @@ class _PaySheetState extends State<_PaySheet> {
                   );
                 }).toList(),
               ),
-              // Step 2
               if (account != null) ...[
                 const SizedBox(height: 20),
-                const Text('Step 2 — Transfer to this account',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const Text('Step 2 â€” Transfer to this account',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -1017,18 +2343,19 @@ class _PaySheetState extends State<_PaySheet> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.account_balance, color: AppColors.textSecondary, size: 20),
+                      const Icon(Icons.account_balance,
+                          color: AppColors.textSecondary, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('$_bank — UGO Platform',
+                            Text('$_bank â€” UGO Platform',
                                 style: const TextStyle(
                                     color: AppColors.textSecondary, fontSize: 12)),
                             Text(account,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                     letterSpacing: 1.2)),
                           ],
@@ -1050,19 +2377,19 @@ class _PaySheetState extends State<_PaySheet> {
                   ),
                 ),
               ],
-              // Step 3
               const SizedBox(height: 20),
-              const Text('Step 3 — Enter Transaction Reference',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Step 3 â€” Enter Transaction Reference',
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(height: 10),
               TextFormField(
                 controller: _refCtrl,
                 decoration: InputDecoration(
                   hintText: 'e.g. TXN123456789',
                   prefixIcon: const Icon(Icons.receipt_long_outlined),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14, horizontal: 14),
                 ),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty)
@@ -1089,7 +2416,7 @@ class _PaySheetState extends State<_PaySheet> {
                                 color: Colors.white, strokeWidth: 2))
                         : const Text('Submit Payment Proof',
                             style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.bold)),
+                                fontSize: 15, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ),
@@ -1101,9 +2428,9 @@ class _PaySheetState extends State<_PaySheet> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Shared helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class _EmptyView extends StatelessWidget {
   final IconData icon;
@@ -1174,3 +2501,7 @@ class _ErrorBanner extends StatelessWidget {
     );
   }
 }
+
+
+
+
