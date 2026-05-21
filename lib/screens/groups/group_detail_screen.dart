@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/group_model.dart';
 import '../../services/group_service.dart';
 import '../../utils/responsive.dart';
@@ -132,18 +133,21 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.qr_code_scanner, color: AppColors.primary),
-                SizedBox(width: 12),
+                const Icon(Icons.qr_code_scanner, color: AppColors.primary),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Scan Passenger QR', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-                      Text('Tap the Scan QR button on the home screen to record a ride', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    ],
-                  ),
+                  child: Builder(builder: (ctx) {
+                    final l = AppLocalizations.of(ctx)!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.scanPassengerQr, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                        const Text('Tap the Scan QR button on the home screen to record a ride', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      ],
+                    );
+                  }),
                 ),
               ],
             ),

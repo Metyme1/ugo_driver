@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -40,27 +41,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _colorCtrl = TextEditingController();
   final _modelCtrl = TextEditingController();
 
-  static const _educationLevels = [
-    ('none', 'None'),
-    ('primary', 'Primary School'),
-    ('secondary', 'Secondary School'),
-    ('diploma', 'Diploma'),
-    ('degree', "Bachelor's Degree"),
-    ('masters', "Master's Degree"),
-    ('phd', 'PhD'),
+  List<(String, String)> _educationLevels(AppLocalizations l) => [
+    ('none', l.educNone),
+    ('primary', l.educPrimary),
+    ('secondary', l.educSecondary),
+    ('diploma', l.educDiploma),
+    ('degree', l.educDegree),
+    ('masters', l.educMasters),
+    ('phd', l.educPhd),
   ];
 
-  static const _vehicleTypes = [
-    ('bajaj', 'Bajaj (3-Wheeler)'),
-    ('electric', 'Electric Bajaj'),
-    ('force', 'Force / Mini-bus'),
-  ];
-
-  static const _stepTitles = ['Create Account', 'Personal Info', 'Vehicle Info'];
-  static const _stepSubtitles = [
-    'Join the UGO driver network',
-    'Identity & license details',
-    'Your vehicle details',
+  List<(String, String)> _vehicleTypes(AppLocalizations l) => [
+    ('bajaj', l.vehBajaj),
+    ('electric', l.vehElectric),
+    ('force', l.vehForce),
   ];
 
   @override
@@ -106,7 +100,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => isExpiry ? _licenseExpiry = picked : _dateOfBirth = picked);
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(AppLocalizations l) async {
     final picker = ImagePicker();
     final choice = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -125,14 +119,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 leading: Container(width: 40, height: 40,
                   decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                   child: const Icon(Icons.camera_alt_outlined, color: AppColors.primary, size: 20)),
-                title: Text('Take a photo', style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
+                title: Text(l.takeAPhoto, style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
               ListTile(
                 leading: Container(width: 40, height: 40,
                   decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                   child: const Icon(Icons.photo_library_outlined, color: AppColors.accent, size: 20)),
-                title: Text('Choose from gallery', style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
+                title: Text(l.chooseFromGallery, style: GoogleFonts.outfit(fontWeight: FontWeight.w400)),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
             ],
@@ -174,11 +168,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final stepTitles = [l.createAccount, l.personalInfo, l.vehicleInfo];
+    final stepSubtitles = [l.joinUGONetwork, l.identityLicenseDetails, l.yourVehicleDetails];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Gradient header
           Container(
             decoration: const BoxDecoration(
               gradient: AppColors.primaryGradient,
@@ -212,7 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Step ${_currentStep + 1} of 3',
+                            l.stepOf3(_currentStep + 1),
                             style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w400),
                           ),
                         ),
@@ -220,28 +217,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      _stepTitles[_currentStep],
+                      stepTitles[_currentStep],
                       style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: -0.5),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _stepSubtitles[_currentStep],
+                      stepSubtitles[_currentStep],
                       style: GoogleFonts.outfit(fontSize: 14, color: Colors.white.withValues(alpha: 0.75)),
                     ),
                     const SizedBox(height: 20),
-                    _StepIndicator(currentStep: _currentStep),
+                    _StepIndicator(currentStep: _currentStep, l: l),
                   ],
                 ),
               ),
             ),
           ),
 
-          // Form area
           Expanded(
             child: PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
-              children: [_step1(), _step2(), _step3()],
+              children: [_step1(l), _step2(l), _step3(l)],
             ),
           ),
         ],
@@ -249,7 +245,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _step1() {
+  Widget _step1(AppLocalizations l) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
@@ -258,48 +254,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLabel('Full Name'),
+              _buildLabel(l.fullName),
               const SizedBox(height: 8),
-              _buildTextField(controller: _nameCtrl, hint: 'Enter full name',
+              _buildTextField(controller: _nameCtrl, hint: l.enterFullName,
                 prefixIcon: Icons.person_outline_rounded,
                 textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().length < 2) ? 'Enter your full name' : null),
+                validator: (v) => (v == null || v.trim().length < 2) ? l.enterYourFullName : null),
               const SizedBox(height: 18),
-              _buildLabel('Phone Number'),
+              _buildLabel(l.phoneNumber),
               const SizedBox(height: 8),
               _buildTextField(controller: _phoneCtrl, hint: '09XXXXXXXX',
                 prefixIcon: Icons.phone_outlined, keyboardType: TextInputType.phone,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your phone number' : null),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.enterPhoneNumber : null),
               const SizedBox(height: 18),
-              _buildLabel('Password'),
+              _buildLabel(l.password),
               const SizedBox(height: 8),
-              _buildTextField(controller: _passwordCtrl, hint: 'Min 8 characters',
+              _buildTextField(controller: _passwordCtrl, hint: l.minCharsHint,
                 prefixIcon: Icons.lock_outline_rounded, obscureText: _obscure,
                 suffixIcon: GestureDetector(
                   onTap: () => setState(() => _obscure = !_obscure),
                   child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                     color: AppColors.textHint, size: 20)),
-                validator: (v) => (v == null || v.length < 8) ? 'At least 8 characters' : null),
+                validator: (v) => (v == null || v.length < 8) ? l.atLeast8Chars : null),
               const SizedBox(height: 18),
-              _buildLabel('Confirm Password'),
+              _buildLabel(l.confirmPassword),
               const SizedBox(height: 8),
-              _buildTextField(controller: _confirmCtrl, hint: 'Confirm password',
+              _buildTextField(controller: _confirmCtrl, hint: l.confirmPasswordHint,
                 prefixIcon: Icons.lock_outline_rounded, obscureText: _obscure,
-                validator: (v) => v != _passwordCtrl.text ? 'Passwords do not match' : null),
+                validator: (v) => v != _passwordCtrl.text ? l.passwordsDoNotMatch : null),
               if (auth.errorMessage != null) ...[
                 const SizedBox(height: 16),
                 _errorBox(auth.errorMessage!),
               ],
               const SizedBox(height: 28),
-              _GradientButton(label: 'Continue', isLoading: false, onTap: _nextStep),
+              _GradientButton(label: l.continueButton, isLoading: false, onTap: _nextStep),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ', style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
+                  Text('${l.alreadyHaveAccount} ', style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: Text('Sign In', style: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.w500, fontSize: 14)),
+                    child: Text(l.signIn, style: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.w500, fontSize: 14)),
                   ),
                 ],
               ),
@@ -310,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _step2() {
+  Widget _step2(AppLocalizations l) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
@@ -319,29 +315,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLabel('Date of Birth'),
+              _buildLabel(l.dateOfBirth),
               const SizedBox(height: 8),
-              _dateField(hint: 'Select date of birth', value: _dateOfBirth,
+              _dateField(hint: l.selectDateOfBirth, value: _dateOfBirth,
                 icon: Icons.cake_outlined, onTap: () => _pickDate(isExpiry: false)),
               const SizedBox(height: 18),
-              _buildLabel('Education Level'),
+              _buildLabel(l.educationLevel),
               const SizedBox(height: 8),
               _styledDropdown<String>(
-                value: _educationLevel, hint: 'Select education level',
+                value: _educationLevel, hint: l.selectEducationLevel,
                 prefixIcon: Icons.school_outlined,
-                items: _educationLevels.map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
+                items: _educationLevels(l).map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
                 onChanged: (v) => setState(() => _educationLevel = v)),
               const SizedBox(height: 18),
-              _buildLabel('National ID Number'),
+              _buildLabel(l.nationalIdNumber),
               const SizedBox(height: 8),
-              _buildTextField(controller: _nationalIdCtrl, hint: 'Enter national ID number',
+              _buildTextField(controller: _nationalIdCtrl, hint: l.enterNationalId,
                 prefixIcon: Icons.badge_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your national ID number' : null),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.enterNationalIdRequired : null),
               const SizedBox(height: 18),
-              _buildLabel('National ID Photo'),
+              _buildLabel(l.nationalIdPhoto),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _pickImage,
+                onTap: () => _pickImage(l),
                 child: Container(
                   height: 140,
                   width: double.infinity,
@@ -363,7 +359,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                               child: const Icon(Icons.add_a_photo_outlined, size: 24, color: AppColors.primary)),
                             const SizedBox(height: 10),
-                            Text('Tap to upload ID photo',
+                            Text(l.tapToUploadIdPhoto,
                               style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w500)),
                           ],
                         ),
@@ -371,19 +367,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               if (_nationalIdImage == null) ...[
                 const SizedBox(height: 6),
-                Text('  Required for verification',
+                Text('  ${l.requiredForVerification}',
                   style: GoogleFonts.outfit(color: AppColors.error, fontSize: 12)),
               ],
               const SizedBox(height: 18),
-              _buildLabel('Driver License Number'),
+              _buildLabel(l.driverLicenseNumber),
               const SizedBox(height: 8),
-              _buildTextField(controller: _licenseCtrl, hint: 'Enter license number',
+              _buildTextField(controller: _licenseCtrl, hint: l.enterLicenseNumber,
                 prefixIcon: Icons.credit_card_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your license number' : null),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.enterLicenseRequired : null),
               const SizedBox(height: 18),
-              _buildLabel('License Expiry Date'),
+              _buildLabel(l.licenseExpiryDate),
               const SizedBox(height: 8),
-              _dateField(hint: 'Select expiry date', value: _licenseExpiry,
+              _dateField(hint: l.selectExpiryDate, value: _licenseExpiry,
                 icon: Icons.event_outlined, onTap: () => _pickDate(isExpiry: true)),
               if (auth.errorMessage != null) ...[
                 const SizedBox(height: 16),
@@ -395,25 +391,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextButton.icon(
                     onPressed: _prevStep,
                     icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                    label: Text('Back', style: GoogleFonts.outfit()),
+                    label: Text(l.back, style: GoogleFonts.outfit()),
                     style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _GradientButton(
-                      label: 'Continue',
+                      label: l.continueButton,
                       isLoading: false,
                       onTap: () {
                         if (_nationalIdImage == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: const Text('Please upload your National ID photo'),
+                            SnackBar(content: Text(l.pleaseUploadNationalId),
                               backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
                           return;
                         }
                         if (_licenseExpiry == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: const Text('Please select your license expiry date'),
+                            SnackBar(content: Text(l.pleaseSelectLicenseExpiry),
                               backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))));
                           return;
@@ -431,7 +427,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _step3() {
+  Widget _step3(AppLocalizations l) {
     return Consumer<AuthProvider>(
       builder: (context, auth, _) => SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
@@ -440,28 +436,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLabel('Vehicle Type'),
+              _buildLabel(l.vehicleType),
               const SizedBox(height: 8),
               _styledDropdown<String>(
-                value: _vehicleType, hint: 'Select vehicle type',
+                value: _vehicleType, hint: l.selectVehicleType,
                 prefixIcon: Icons.directions_car_outlined,
-                items: _vehicleTypes.map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
+                items: _vehicleTypes(l).map((e) => DropdownMenuItem(value: e.$1, child: Text(e.$2))).toList(),
                 onChanged: (v) => setState(() => _vehicleType = v),
-                validator: (v) => v == null ? 'Select your vehicle type' : null),
+                validator: (v) => v == null ? l.vehicleTypeRequired : null),
               const SizedBox(height: 18),
-              _buildLabel('Plate Number'),
+              _buildLabel(l.plateNumber),
               const SizedBox(height: 8),
               _buildTextField(controller: _plateCtrl, hint: 'e.g. 3-12345',
                 prefixIcon: Icons.pin_outlined, textCapitalization: TextCapitalization.characters,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your plate number' : null),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.enterPlateNumber : null),
               const SizedBox(height: 18),
-              _buildLabel('Vehicle Color'),
+              _buildLabel(l.vehicleColor),
               const SizedBox(height: 8),
               _buildTextField(controller: _colorCtrl, hint: 'e.g. Blue',
                 prefixIcon: Icons.palette_outlined, textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter vehicle color' : null),
+                validator: (v) => (v == null || v.trim().isEmpty) ? l.enterVehicleColor : null),
               const SizedBox(height: 18),
-              _buildLabel('Vehicle Model / Year'),
+              _buildLabel(l.vehicleModelYear),
               const SizedBox(height: 8),
               _buildTextField(controller: _modelCtrl, hint: 'e.g. Bajaj RE 2022',
                 prefixIcon: Icons.build_outlined, textCapitalization: TextCapitalization.words),
@@ -481,7 +477,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Your account will be reviewed by the admin team before activation.',
+                        l.accountReviewNotice,
                         style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
                       ),
                     ),
@@ -498,11 +494,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextButton.icon(
                     onPressed: auth.isLoading ? null : _prevStep,
                     icon: const Icon(Icons.arrow_back_rounded, size: 16),
-                    label: Text('Back', style: GoogleFonts.outfit()),
+                    label: Text(l.back, style: GoogleFonts.outfit()),
                     style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(child: _GradientButton(label: 'Submit Registration', isLoading: auth.isLoading, onTap: auth.isLoading ? null : _submit)),
+                  Expanded(child: _GradientButton(label: l.submitRegistration, isLoading: auth.isLoading, onTap: auth.isLoading ? null : _submit)),
                 ],
               ),
             ],
@@ -618,11 +614,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 class _StepIndicator extends StatelessWidget {
   final int currentStep;
-  const _StepIndicator({required this.currentStep});
+  final AppLocalizations l;
+  const _StepIndicator({required this.currentStep, required this.l});
 
   @override
   Widget build(BuildContext context) {
-    const labels = ['Account', 'Personal', 'Vehicle'];
+    final labels = [l.stepAccount, l.stepPersonal, l.stepVehicle];
     return Row(
       children: List.generate(3, (i) {
         final isActive = i == currentStep;
@@ -690,4 +687,3 @@ class _GradientButton extends StatelessWidget {
     );
   }
 }
-

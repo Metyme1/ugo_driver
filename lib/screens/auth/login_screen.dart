@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,11 +41,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Dark top section
           Positioned(
             top: 0,
             left: 0,
@@ -94,7 +95,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 40),
 
-                    // Logo + title in top section
                     Container(
                       width: 72,
                       height: 72,
@@ -110,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Welcome Back',
+                      l.welcomeBack,
                       style: GoogleFonts.outfit(
                         fontSize: 30,
                         fontWeight: FontWeight.w500,
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Sign in to your driver account',
+                      l.signInToDriverAccount,
                       style: GoogleFonts.outfit(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.7),
@@ -129,7 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 36),
 
-                    // White form card
                     Container(
                       padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
@@ -158,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _errorBox(auth.errorMessage!),
                                 const SizedBox(height: 20),
                               ],
-                              _buildLabel('Phone Number'),
+                              _buildLabel(l.phoneNumber),
                               const SizedBox(height: 8),
                               _buildTextField(
                                 controller: _phoneCtrl,
@@ -168,20 +167,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                 keyboardType: TextInputType.number,
                                 maxLength: 9,
                                 validator: (v) {
-                                  if (v == null || v.isEmpty) return 'Phone is required';
-                                  if (v.length != 9) return 'Enter exactly 9 digits';
+                                  if (v == null || v.isEmpty) return l.phoneRequired;
+                                  if (v.length != 9) return l.enter9Digits;
                                   if (!v.startsWith('7') && !v.startsWith('9')) {
-                                    return 'Number must start with 7 or 9';
+                                    return l.numberMustStart79;
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 20),
-                              _buildLabel('Password'),
+                              _buildLabel(l.password),
                               const SizedBox(height: 8),
                               _buildTextField(
                                 controller: _passwordCtrl,
-                                hint: 'Enter Password',
+                                hint: l.password,
                                 prefixIcon: Icons.lock_outline_rounded,
                                 obscureText: _obscurePassword,
                                 suffixIcon: GestureDetector(
@@ -194,9 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     size: 20,
                                   ),
                                 ),
-                                validator: (v) => (v == null || v.isEmpty)
-                                    ? 'Password is required'
-                                    : null,
+                                validator: (v) => (v == null || v.isEmpty) ? l.passwordRequired : null,
                               ),
                               const SizedBox(height: 12),
                               Align(
@@ -204,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: GestureDetector(
                                   onTap: () => context.push('/forgot-password'),
                                   child: Text(
-                                    'Forgot password?',
+                                    l.forgotPassword,
                                     style: GoogleFonts.outfit(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w400,
@@ -215,9 +212,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 28),
 
-                              // Login button with gradient
                               _GradientButton(
-                                label: 'Sign In',
+                                label: l.signIn,
                                 icon: Icons.arrow_forward_rounded,
                                 isLoading: auth.isLoading,
                                 onTap: auth.isLoading ? null : _login,
@@ -228,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Don't have an account? ",
+                                    '${l.dontHaveAccount} ',
                                     style: GoogleFonts.outfit(
                                       color: AppColors.textSecondary,
                                       fontSize: 14,
@@ -237,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   GestureDetector(
                                     onTap: () => context.push('/register'),
                                     child: Text(
-                                      'Register',
+                                      l.register,
                                       style: GoogleFonts.outfit(
                                         color: AppColors.primary,
                                         fontWeight: FontWeight.w500,
@@ -430,4 +426,3 @@ class _GradientButton extends StatelessWidget {
     );
   }
 }
-

@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/offline_qr_service.dart';
 import '../../widgets/common/app_button.dart';
 
@@ -24,29 +25,29 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Offline Scan'),
+        title: Text(l.offlineScan),
         automaticallyImplyLeading: false,
         actions: [
           TextButton(
             onPressed: () => context.go('/scan'),
-            child: const Text('Scan Again', style: TextStyle(color: Colors.white)),
+            child: Text(l.scanAgain, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: _queued ? _buildQueued() : _buildConfirm(),
+        child: _queued ? _buildQueued(l) : _buildConfirm(l),
       ),
     );
   }
 
-  Widget _buildConfirm() {
+  Widget _buildConfirm(AppLocalizations l) {
     return Column(
       children: [
-        // Offline banner
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -55,16 +56,16 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.wifi_off, color: AppColors.warning, size: 28),
-              SizedBox(width: 12),
+              const Icon(Icons.wifi_off, color: AppColors.warning, size: 28),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Offline Mode', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: AppColors.warning)),
-                    Text('QR verified locally. Ride will sync when online.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    Text(l.offlineMode, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: AppColors.warning)),
+                    Text(l.qrVerifiedLocally, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                   ],
                 ),
               ),
@@ -73,7 +74,6 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
         ),
         const SizedBox(height: 20),
 
-        // QR valid card
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -82,16 +82,16 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.verified_user, color: AppColors.primary, size: 32),
-              SizedBox(width: 12),
+              const Icon(Icons.verified_user, color: AppColors.primary, size: 32),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('QR Signature Valid', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: AppColors.primary)),
-                    Text('Passenger QR is genuine. Select rides to queue.', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    Text(l.qrSignatureValid, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16, color: AppColors.primary)),
+                    Text(l.passengerQrGenuine, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                   ],
                 ),
               ),
@@ -100,16 +100,15 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Ride selector
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Rides to Deduct', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+              Text(l.ridesToDeduct, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
               const SizedBox(height: 4),
-              const Text('Will be recorded once back online', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              Text(l.willBeRecordedOnline, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
               const SizedBox(height: 14),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -119,7 +118,7 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
                   Column(
                     children: [
                       Text('$_selectedRides', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-                      Text(_selectedRides == 1 ? 'ride' : 'rides', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                      Text(_selectedRides == 1 ? l.ride : l.rides, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     ],
                   ),
                   const SizedBox(width: 24),
@@ -131,14 +130,14 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
         ),
         const SizedBox(height: 24),
 
-        AppButton(label: 'Queue Ride', onPressed: _queue, icon: Icons.queue),
+        AppButton(label: l.queueRide, onPressed: _queue, icon: Icons.queue),
         const SizedBox(height: 12),
-        AppButton(label: 'Cancel', onPressed: () => context.go('/scan'), icon: Icons.close, outlined: true),
+        AppButton(label: l.cancel, onPressed: () => context.go('/scan'), icon: Icons.close, outlined: true),
       ],
     );
   }
 
-  Widget _buildQueued() {
+  Widget _buildQueued(AppLocalizations l) {
     return Column(
       children: [
         Container(
@@ -154,22 +153,20 @@ class _OfflineScanResultScreenState extends State<OfflineScanResultScreen> {
               const Icon(Icons.check_circle, color: AppColors.success, size: 48),
               const SizedBox(height: 12),
               Text(
-                '$_selectedRides ride${_selectedRides == 1 ? '' : 's'} queued',
+                _selectedRides == 1 ? l.rideQueued(_selectedRides) : l.ridesQueued(_selectedRides),
                 style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.success),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Will be deducted from the passenger\'s account when you reconnect.',
+              Text(l.willBeSyncedOnline,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        AppButton(label: 'Scan Another', onPressed: () => context.go('/scan'), icon: Icons.qr_code_scanner),
+        AppButton(label: l.scanAnother, onPressed: () => context.go('/scan'), icon: Icons.qr_code_scanner),
         const SizedBox(height: 12),
-        AppButton(label: 'Done', onPressed: () => context.go('/home'), icon: Icons.home, outlined: true),
+        AppButton(label: l.done, onPressed: () => context.go('/home'), icon: Icons.home, outlined: true),
       ],
     );
   }
@@ -186,8 +183,7 @@ class _CounterBtn extends StatelessWidget {
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        width: 44,
-        height: 44,
+        width: 44, height: 44,
         decoration: BoxDecoration(
           color: enabled ? AppColors.primary : Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
@@ -197,5 +193,3 @@ class _CounterBtn extends StatelessWidget {
     );
   }
 }
-
-

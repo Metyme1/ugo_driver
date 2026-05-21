@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/responsive.dart';
 
@@ -17,7 +18,6 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     with SingleTickerProviderStateMixin {
-  // ── Step 1 controllers ───────────────────────────────────────────────────
   final _currentCtrl  = TextEditingController();
   final _newCtrl      = TextEditingController();
   final _confirmCtrl  = TextEditingController();
@@ -25,7 +25,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   bool _obscureNew     = true;
   bool _obscureConfirm = true;
 
-  // ── Step 2 OTP ───────────────────────────────────────────────────────────
   static const int _otpLen = 6;
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _otpFocusNodes  = List.generate(6, (_) => FocusNode());
@@ -33,8 +32,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   bool _canResend    = false;
   Timer? _timer;
 
-  // ── State ────────────────────────────────────────────────────────────────
-  int _step = 1; // 1 = enter passwords, 2 = enter OTP
+  int _step = 1;
   late AnimationController _anim;
   late Animation<double> _fade;
 
@@ -51,31 +49,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
   @override
   void dispose() {
     _anim.dispose();
-    _currentCtrl.dispose();
-    _newCtrl.dispose();
-    _confirmCtrl.dispose();
+    _currentCtrl.dispose(); _newCtrl.dispose(); _confirmCtrl.dispose();
     for (final c in _otpControllers) { c.dispose(); }
     for (final f in _otpFocusNodes)  { f.dispose(); }
     _timer?.cancel();
     super.dispose();
   }
 
-  // ── Step 1 ───────────────────────────────────────────────────────────────
-
   Future<void> _sendOtp() async {
-    if (_newCtrl.text.length < 8) {
-      _snack('New password must be at least 8 characters', AppColors.error);
-      return;
-    }
-    if (_newCtrl.text != _confirmCtrl.text) {
-      _snack('Passwords do not match', AppColors.error);
-      return;
-    }
+    final l = AppLocalizations.of(context)!;
+    if (_newCtrl.text.length < 8) { _snack(l.newPasswordTooShort, AppColors.error); return; }
+    if (_newCtrl.text != _confirmCtrl.text) { _snack(l.passwordsDoNotMatch, AppColors.error); return; }
     context.read<AuthProvider>().clearError();
     final success = await context.read<AuthProvider>().requestChangePasswordOtp(
-      currentPassword:  _currentCtrl.text,
-      newPassword:      _newCtrl.text,
-      confirmPassword:  _confirmCtrl.text,
+      currentPassword: _currentCtrl.text,
+      newPassword:     _newCtrl.text,
+      confirmPassword: _confirmCtrl.text,
     );
     if (!mounted) return;
     if (success) _goToStep2();
@@ -83,23 +72,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
   void _goToStep2() {
     setState(() => _step = 2);
-    _anim.reset();
-    _anim.forward();
+    _anim.reset(); _anim.forward();
     _startTimer();
     WidgetsBinding.instance.addPostFrameCallback((_) => _otpFocusNodes[0].requestFocus());
   }
 
-  // ── Step 2 ───────────────────────────────────────────────────────────────
-
   void _startTimer() {
-    _resendSeconds = 60;
-    _canResend = false;
+    _resendSeconds = 60; _canResend = false;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) { t.cancel(); return; }
       setState(() {
-        if (_resendSeconds > 0) { _resendSeconds--; }
-        else { _canResend = true; t.cancel(); }
+        if (_resendSeconds > 0) { _resendSeconds--; } else { _canResend = true; t.cancel(); }
       });
     });
   }
@@ -123,11 +107,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
 
   Future<void> _confirmOtp() async {
     if (_otp.length != _otpLen) return;
+    final l = AppLocalizations.of(context)!;
     context.read<AuthProvider>().clearError();
     final success = await context.read<AuthProvider>().changePassword(_otp);
     if (!mounted) return;
     if (success) {
-      _snack('Password changed successfully!', AppColors.success);
+      _snack(l.passwordChangedSuccessfully, AppColors.success);
       context.pop();
     } else {
       _clearOtp();
@@ -155,47 +140,33 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
     ));
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(_step == 1 ? 'Change Password' : 'Verify OTP',
+        title: Text(_step == 1 ? l.changePassword : l.verifyOtpTitle,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 18)),
         leading: GestureDetector(
           onTap: () {
-            if (_step == 2) {
-              setState(() => _step = 1);
-              _anim.reset(); _anim.forward();
-              _timer?.cancel();
-            } else {
-              context.pop();
-            }
+            if (_step == 2) { setState(() => _step = 1); _anim.reset(); _anim.forward(); _timer?.cancel(); }
+            else { context.pop(); }
           },
           child: Container(
             margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
+            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
             child: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 15),
           ),
         ),
       ),
-      body: FadeTransition(
-        opacity: _fade,
-        child: _step == 1 ? _buildStep1() : _buildStep2(),
-      ),
+      body: FadeTransition(opacity: _fade, child: _step == 1 ? _buildStep1(l) : _buildStep2(l)),
     );
   }
 
-  // ── Step 1 UI ─────────────────────────────────────────────────────────────
-
-  Widget _buildStep1() {
+  Widget _buildStep1(AppLocalizations l) {
     final auth = context.watch<AuthProvider>();
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.hPad),
@@ -203,8 +174,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-
-          // Info banner
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -216,61 +185,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
               children: [
                 const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Enter your current password and choose a new one. An OTP will be sent to your device to confirm.',
-                    style: GoogleFonts.outfit(color: AppColors.primary, fontSize: 13),
-                  ),
-                ),
+                Expanded(child: Text(l.changePasswordInfo, style: GoogleFonts.outfit(color: AppColors.primary, fontSize: 13))),
               ],
             ),
           ),
           const SizedBox(height: 20),
-
-          _sectionLabel('CURRENT PASSWORD', AppColors.primary),
+          _sectionLabel(l.currentPasswordSection, AppColors.primary),
           const SizedBox(height: 10),
-          _pwCard([
-            _pwField(_currentCtrl, 'Current Password', _obscureCurrent,
-              () => setState(() => _obscureCurrent = !_obscureCurrent)),
-          ]),
+          _pwCard([_pwField(_currentCtrl, l.currentPassword, _obscureCurrent, () => setState(() => _obscureCurrent = !_obscureCurrent))]),
           const SizedBox(height: 16),
-
-          _sectionLabel('NEW PASSWORD', const Color(0xFF7C3AED)),
+          _sectionLabel(l.newPasswordSection, const Color(0xFF7C3AED)),
           const SizedBox(height: 10),
           _pwCard([
-            _pwField(_newCtrl, 'New Password', _obscureNew,
-              () => setState(() => _obscureNew = !_obscureNew)),
+            _pwField(_newCtrl, l.newPassword, _obscureNew, () => setState(() => _obscureNew = !_obscureNew)),
             const SizedBox(height: 14),
-            _pwField(_confirmCtrl, 'Confirm New Password', _obscureConfirm,
-              () => setState(() => _obscureConfirm = !_obscureConfirm)),
+            _pwField(_confirmCtrl, l.confirmNewPassword, _obscureConfirm, () => setState(() => _obscureConfirm = !_obscureConfirm)),
           ]),
-
-          if (auth.errorMessage != null) ...[
-            const SizedBox(height: 16),
-            _errorBanner(auth.errorMessage!),
-          ],
+          if (auth.errorMessage != null) ...[const SizedBox(height: 16), _errorBanner(auth.errorMessage!)],
           const SizedBox(height: 24),
-
-          _primaryButton(
-            label: 'Send OTP',
-            icon: Icons.send_rounded,
-            loading: auth.isLoading,
-            onTap: _sendOtp,
-          ),
+          _primaryButton(label: l.sendOtp, icon: Icons.send_rounded, loading: auth.isLoading, onTap: _sendOtp),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // ── Step 2 UI ─────────────────────────────────────────────────────────────
-
-  Widget _buildStep2() {
+  Widget _buildStep2(AppLocalizations l) {
     final auth = context.watch<AuthProvider>();
     final phone = context.read<AuthProvider>().user?.phone ?? '';
-    final maskedPhone = phone.length >= 6
-        ? '${phone.substring(0, phone.length - 4)}****'
-        : phone;
+    final maskedPhone = phone.length >= 6 ? '${phone.substring(0, phone.length - 4)}****' : phone;
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.hPad),
@@ -278,8 +221,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-
-          // OTP sent banner
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -291,42 +232,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
               children: [
                 const Icon(Icons.check_circle_outline_rounded, color: AppColors.success, size: 18),
                 const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'OTP sent to your registered device ($maskedPhone). Enter it below.',
-                    style: GoogleFonts.outfit(color: AppColors.success, fontSize: 13),
-                  ),
-                ),
+                Expanded(child: Text(l.otpSentTo(maskedPhone), style: GoogleFonts.outfit(color: AppColors.success, fontSize: 13))),
               ],
             ),
           ),
           const SizedBox(height: 28),
-
-          _sectionLabel('VERIFICATION CODE', const Color(0xFF7C3AED)),
+          _sectionLabel(l.verificationCodeSection, const Color(0xFF7C3AED)),
           const SizedBox(height: 12),
-
-          // OTP card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.06),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))],
             ),
             child: Column(
               children: [
-                Text('Enter 6-digit code',
-                  style: GoogleFonts.outfit(
-                    fontSize: 14, color: AppColors.textSecondary)),
+                Text(l.enter6DigitCode, style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textSecondary)),
                 const SizedBox(height: 20),
-
-                // OTP boxes
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Row(
@@ -343,28 +266,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             maxLength: 1,
-                            style: GoogleFonts.outfit(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
+                            style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.primary),
                             decoration: InputDecoration(
                               counterText: '',
-                              filled: true,
-                              fillColor: AppColors.inputFill,
+                              filled: true, fillColor: AppColors.inputFill,
                               contentPadding: EdgeInsets.zero,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.border, width: 1.5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: AppColors.primary, width: 2.5),
-                              ),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border, width: 1.5)),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2.5)),
                             ),
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             onChanged: (v) => _onOtpChanged(v, i),
@@ -374,170 +283,94 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
                     )),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Resend
                 GestureDetector(
                   onTap: _canResend ? _resend : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: _canResend
-                          ? AppColors.primary.withValues(alpha: 0.08)
-                          : AppColors.surface,
+                      color: _canResend ? AppColors.primary.withValues(alpha: 0.08) : AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _canResend
-                            ? AppColors.primary.withValues(alpha: 0.3)
-                            : AppColors.border),
+                      border: Border.all(color: _canResend ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border),
                     ),
                     child: Text(
-                      _canResend ? 'Resend OTP' : 'Retry in ${_resendSeconds}s',
-                      style: GoogleFonts.outfit(
-                        color: _canResend ? AppColors.primary : AppColors.textHint,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
+                      _canResend ? l.resendOtp : l.retryInSeconds(_resendSeconds),
+                      style: GoogleFonts.outfit(color: _canResend ? AppColors.primary : AppColors.textHint, fontWeight: FontWeight.w500, fontSize: 13),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          if (auth.errorMessage != null) ...[
-            const SizedBox(height: 16),
-            _errorBanner(auth.errorMessage!),
-          ],
+          if (auth.errorMessage != null) ...[const SizedBox(height: 16), _errorBanner(auth.errorMessage!)],
           const SizedBox(height: 24),
-
-          _primaryButton(
-            label: 'Confirm',
-            icon: Icons.check_rounded,
-            loading: auth.isLoading,
-            onTap: _otp.length == _otpLen ? _confirmOtp : null,
-            enabled: _otp.length == _otpLen,
-          ),
+          _primaryButton(label: l.confirm, icon: Icons.check_rounded, loading: auth.isLoading, onTap: _otp.length == _otpLen ? _confirmOtp : null, enabled: _otp.length == _otpLen),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
-
-  // ── Shared helpers ────────────────────────────────────────────────────────
 
   Widget _sectionLabel(String title, Color color) {
     return Row(
       children: [
-        Container(
-          width: 3, height: 13,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
-        ),
+        Container(width: 3, height: 13, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
         const SizedBox(width: 8),
-        Text(title,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-            fontSize: 11,
-            letterSpacing: 1.2,
-          )),
+        Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textSecondary, fontSize: 11, letterSpacing: 1.2)),
       ],
     );
   }
 
-  Widget _pwCard(List<Widget> children) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
+  Widget _pwCard(List<Widget> children) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))],
+    ),
+    child: Column(children: children),
+  );
 
-  Widget _pwField(
-    TextEditingController ctrl,
-    String label,
-    bool obscure,
-    VoidCallback toggleObscure,
-  ) {
+  Widget _pwField(TextEditingController ctrl, String label, bool obscure, VoidCallback toggle) {
     return TextFormField(
-      controller: ctrl,
-      obscureText: obscure,
+      controller: ctrl, obscureText: obscure,
       style: GoogleFonts.outfit(fontSize: 15, color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13),
-        prefixIcon: Padding(
-          padding: const EdgeInsets.only(left: 14, right: 10),
-          child: Icon(Icons.lock_outline_rounded,
-            color: AppColors.primary.withValues(alpha: 0.5), size: 20),
-        ),
+        prefixIcon: Padding(padding: const EdgeInsets.only(left: 14, right: 10),
+          child: Icon(Icons.lock_outline_rounded, color: AppColors.primary.withValues(alpha: 0.5), size: 20)),
         prefixIconConstraints: const BoxConstraints(minWidth: 44),
-        suffixIcon: GestureDetector(
-          onTap: toggleObscure,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: Icon(
-              obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-              color: AppColors.textHint, size: 20),
-          ),
-        ),
+        suffixIcon: GestureDetector(onTap: toggle,
+          child: Padding(padding: const EdgeInsets.only(right: 14),
+            child: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: AppColors.textHint, size: 20))),
         suffixIconConstraints: const BoxConstraints(minWidth: 44),
-        filled: true,
-        fillColor: AppColors.inputFill,
+        filled: true, fillColor: AppColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
       ),
     );
   }
 
-  Widget _errorBanner(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(message,
-              style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _errorBanner(String message) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: AppColors.error.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+    ),
+    child: Row(children: [
+      const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+      const SizedBox(width: 8),
+      Expanded(child: Text(message, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13))),
+    ]),
+  );
 
-  Widget _primaryButton({
-    required String label,
-    required IconData icon,
-    required bool loading,
-    required VoidCallback? onTap,
-    bool enabled = true,
-  }) {
+  Widget _primaryButton({required String label, required IconData icon, required bool loading, required VoidCallback? onTap, bool enabled = true}) {
     final active = enabled && !loading;
     return GestureDetector(
       onTap: active ? onTap : null,
@@ -547,26 +380,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen>
           gradient: active ? AppColors.primaryGradient : null,
           color: active ? null : AppColors.disabled,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: active ? [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
-            ),
-          ] : null,
+          boxShadow: active ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5))] : null,
         ),
         child: Center(
           child: loading
-              ? const SizedBox(width: 22, height: 22,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(icon, color: Colors.white, size: 18),
                     const SizedBox(width: 8),
-                    Text(label,
-                      style: GoogleFonts.outfit(
-                        fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                    Text(label, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
                   ],
                 ),
         ),

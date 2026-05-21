@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/daily_trip_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/nomination_provider.dart';
@@ -54,15 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String get _greeting {
+  String _greeting(AppLocalizations l) {
     final h = DateTime.now().hour;
-    if (h < 12) return 'Good Morning';
-    if (h < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (h < 12) return l.goodMorning;
+    if (h < 17) return l.goodAfternoon;
+    return l.goodEvening;
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final user = context.watch<AuthProvider>().user;
     final nominations = context.watch<NominationProvider>();
     context.watch<GroupProvider>();
@@ -86,13 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: _TopBar(
-                  greeting: _greeting,
+                  greeting: _greeting(l),
                   firstName: user?.firstName,
                   unreadCount: notifs.unreadCount,
+                  activeLabel: l.active,
                 ),
               ),
 
-              // Earnings hero banner
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 sliver: SliverToBoxAdapter(
@@ -117,13 +119,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Net Earnings',
+                                Text(l.netEarnings,
                                   style: GoogleFonts.outfit(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.w500)),
                                 const SizedBox(height: 4),
                                 Text('ETB $earningsStr',
                                   style: GoogleFonts.outfit(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w500, letterSpacing: -0.5)),
                                 const SizedBox(height: 4),
-                                Text('This month Â· Tap to view details',
+                                Text(l.thisMonthTapDetails,
                                   style: GoogleFonts.outfit(color: Colors.white54, fontSize: 12)),
                               ],
                             ),
@@ -143,34 +145,33 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Stat row
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 sliver: SliverToBoxAdapter(
                   child: Row(
                     children: [
                       _MiniStat(
-                        label: "Today's Trips",
+                        label: l.todaysTrips,
                         value: _todayTrips.length.toString(),
-                        sub: activeTrips > 0 ? '$activeTrips active' : 'No active trips',
+                        sub: activeTrips > 0 ? l.activeTripsCount(activeTrips) : l.noActiveTripsSub,
                         icon: Icons.directions_car_rounded,
                         color: AppColors.accent,
                         onTap: () => context.go('/routes'),
                       ),
                       const SizedBox(width: 10),
                       _MiniStat(
-                        label: 'Nominations',
+                        label: l.nominations,
                         value: nominations.pendingCount.toString(),
-                        sub: nominations.pendingCount > 0 ? 'Tap to respond' : 'No pending',
+                        sub: nominations.pendingCount > 0 ? l.tapToRespond : l.noPending,
                         icon: Icons.pending_actions_rounded,
                         color: nominations.pendingCount > 0 ? AppColors.warning : AppColors.textSecondary,
                         onTap: () => context.go('/nominations'),
                       ),
                       const SizedBox(width: 10),
                       _MiniStat(
-                        label: 'Alerts',
+                        label: l.alerts,
                         value: notifs.unreadCount.toString(),
-                        sub: notifs.unreadCount > 0 ? 'Tap to read' : 'All clear',
+                        sub: notifs.unreadCount > 0 ? l.tapToRead : l.allClear,
                         icon: Icons.notifications_rounded,
                         color: notifs.unreadCount > 0 ? AppColors.error : AppColors.textSecondary,
                         onTap: () => context.push('/notifications'),
@@ -180,7 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Today's Routes
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                 sliver: SliverToBoxAdapter(
@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: const Icon(Icons.route_rounded, color: Colors.white, size: 16),
                               ),
                               const SizedBox(width: 10),
-                              Text("Today's Routes",
+                              Text(l.todaysRoutes,
                                 style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
                               if (_todayTrips.isNotEmpty) ...[
                                 const SizedBox(width: 8),
@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               foregroundColor: AppColors.primary,
                               textStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400),
                             ),
-                            child: const Text('View all'),
+                            child: Text(l.viewAll),
                           ),
                         ],
                       ),
@@ -237,12 +237,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         )
                       else if (_todayTrips.isEmpty)
-                        const _EmptyCard(
+                        _EmptyCard(
                           icon: Icons.route_outlined,
-                          message: 'No routes scheduled for today.\nCheck back after your groups are set up.',
+                          message: l.noRoutesScheduledHome,
                         )
                       else ...[
-                        ..._todayTrips.take(2).map((trip) => _TripTile(trip: trip, onTap: () => context.go('/routes'))),
+                        ..._todayTrips.take(2).map((trip) => _TripTile(trip: trip, l: l, onTap: () => context.go('/routes'))),
                         if (_todayTrips.length > 2) ...[
                           const SizedBox(height: 6),
                           SizedBox(
@@ -251,7 +251,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               onPressed: () => context.go('/routes'),
                               icon: const Icon(Icons.arrow_forward_rounded, size: 15),
                               label: Text(
-                                'View ${_todayTrips.length - 2} more route${_todayTrips.length - 2 > 1 ? 's' : ''}',
+                                _todayTrips.length - 2 == 1
+                                    ? l.viewMoreRoutes(_todayTrips.length - 2)
+                                    : l.viewMoreRoutesPlural(_todayTrips.length - 2),
                                 style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400),
                               ),
                               style: OutlinedButton.styleFrom(
@@ -279,7 +281,8 @@ class _TopBar extends StatelessWidget {
   final String greeting;
   final String? firstName;
   final int unreadCount;
-  const _TopBar({required this.greeting, required this.firstName, required this.unreadCount});
+  final String activeLabel;
+  const _TopBar({required this.greeting, required this.firstName, required this.unreadCount, required this.activeLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -319,7 +322,7 @@ class _TopBar extends StatelessWidget {
                           decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 4),
-                        Text('Active',
+                        Text(activeLabel,
                           style: GoogleFonts.outfit(color: AppColors.accentLight, fontSize: 11, fontWeight: FontWeight.w400)),
                       ],
                     ),
@@ -431,8 +434,9 @@ class _MiniStat extends StatelessWidget {
 
 class _TripTile extends StatelessWidget {
   final DriverDailyTrip trip;
+  final AppLocalizations l;
   final VoidCallback onTap;
-  const _TripTile({required this.trip, required this.onTap});
+  const _TripTile({required this.trip, required this.l, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -442,15 +446,15 @@ class _TripTile extends StatelessWidget {
 
     if (trip.isCompleted) {
       statusColor = AppColors.success;
-      statusLabel = 'Done';
+      statusLabel = l.statusDone;
       statusIcon = Icons.check_circle_rounded;
     } else if (trip.isActive) {
       statusColor = AppColors.warning;
-      statusLabel = 'Active';
+      statusLabel = l.active;
       statusIcon = Icons.play_circle_rounded;
     } else {
       statusColor = AppColors.textHint;
-      statusLabel = 'Scheduled';
+      statusLabel = l.scheduled;
       statusIcon = Icons.schedule_rounded;
     }
 
@@ -490,7 +494,7 @@ class _TripTile extends StatelessWidget {
                   Text(trip.routeLabel,
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textPrimary)),
                   const SizedBox(height: 2),
-                  Text('${trip.groupName} Â· ${trip.scheduledTime}',
+                  Text('${trip.groupName} · ${trip.scheduledTime}',
                     style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 12)),
                 ],
               ),
@@ -554,4 +558,3 @@ class _EmptyCard extends StatelessWidget {
     );
   }
 }
-

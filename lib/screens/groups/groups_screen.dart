@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/group_provider.dart';
 import '../../utils/responsive.dart';
 import '../../widgets/common/loading_widget.dart';
@@ -25,19 +26,20 @@ class _GroupsScreenState extends State<GroupsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final provider = context.watch<GroupProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('My Groups',
+        title: Text(l.myGroups,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
       ),
       body: RefreshIndicator(
         onRefresh: () => context.read<GroupProvider>().loadMyGroups(),
         color: AppColors.primary,
         child: provider.isLoading
-            ? const LoadingWidget(message: 'Loading groups...')
+            ? LoadingWidget(message: l.loadingGroups)
             : provider.errorMessage != null
                 ? Center(
                     child: Padding(
@@ -47,26 +49,19 @@ class _GroupsScreenState extends State<GroupsScreen> {
                         children: [
                           Container(
                             width: 72, height: 72,
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.08),
-                              shape: BoxShape.circle,
-                            ),
+                            decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.08), shape: BoxShape.circle),
                             child: const Icon(Icons.error_outline_rounded, size: 36, color: AppColors.error),
                           ),
                           const SizedBox(height: 16),
-                          Text(provider.errorMessage!,
-                            textAlign: TextAlign.center,
+                          Text(provider.errorMessage!, textAlign: TextAlign.center,
                             style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
                           const SizedBox(height: 20),
                           GestureDetector(
                             onTap: () => context.read<GroupProvider>().loadMyGroups(),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                              decoration: BoxDecoration(
-                                gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text('Retry', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500)),
+                              decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(12)),
+                              child: Text(l.retry, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500)),
                             ),
                           ),
                         ],
@@ -82,17 +77,14 @@ class _GroupsScreenState extends State<GroupsScreen> {
                             children: [
                               Container(
                                 width: 90, height: 90,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.07),
-                                  shape: BoxShape.circle,
-                                ),
+                                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.07), shape: BoxShape.circle),
                                 child: const Icon(Icons.groups_outlined, size: 44, color: AppColors.primary),
                               ),
                               const SizedBox(height: 20),
-                              Text('No active groups yet',
+                              Text(l.noActiveGroupsYet,
                                 style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 18, color: AppColors.textPrimary)),
                               const SizedBox(height: 8),
-                              Text('Accept a nomination to get started',
+                              Text(l.acceptNominationToStart,
                                 style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13),
                                 textAlign: TextAlign.center),
                               const SizedBox(height: 24),
@@ -110,8 +102,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                                     children: [
                                       const Icon(Icons.pending_actions_rounded, size: 16, color: AppColors.primary),
                                       const SizedBox(width: 6),
-                                      Text('View Nominations',
-                                        style: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.w400)),
+                                      Text(l.viewNominations, style: GoogleFonts.outfit(color: AppColors.primary, fontWeight: FontWeight.w400)),
                                     ],
                                   ),
                                 ),
@@ -133,11 +124,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.06),
-                                    blurRadius: 14,
-                                    offset: const Offset(0, 4),
-                                  ),
+                                  BoxShadow(color: AppColors.primary.withValues(alpha: 0.06), blurRadius: 14, offset: const Offset(0, 4)),
                                 ],
                               ),
                               child: Padding(
@@ -203,10 +190,7 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -225,11 +209,7 @@ class _StatusDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = status == 'open'
-        ? AppColors.success
-        : status == 'full'
-            ? AppColors.warning
-            : AppColors.textSecondary;
+    final color = status == 'open' ? AppColors.success : status == 'full' ? AppColors.warning : AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -242,12 +222,9 @@ class _StatusDot extends StatelessWidget {
         children: [
           Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 4),
-          Text(status,
-            style: GoogleFonts.outfit(fontSize: 11, color: color, fontWeight: FontWeight.w500)),
+          Text(status, style: GoogleFonts.outfit(fontSize: 11, color: color, fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
 }
-
-

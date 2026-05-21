@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'config/routes.dart';
 import 'config/theme.dart';
 import 'services/api_service.dart';
+
+final appLocale = ValueNotifier<Locale>(const Locale('en'));
 
 class UGoDriverApp extends StatefulWidget {
   const UGoDriverApp({super.key});
@@ -14,8 +18,8 @@ class _UGoDriverAppState extends State<UGoDriverApp> {
   @override
   void initState() {
     super.initState();
-    // Listen for session expiry and redirect to login
     ApiService().sessionExpired.addListener(_onSessionExpired);
+    appLocale.addListener(_onLocaleChange);
   }
 
   void _onSessionExpired() {
@@ -23,9 +27,12 @@ class _UGoDriverAppState extends State<UGoDriverApp> {
     router.go('/login');
   }
 
+  void _onLocaleChange() => setState(() {});
+
   @override
   void dispose() {
     ApiService().sessionExpired.removeListener(_onSessionExpired);
+    appLocale.removeListener(_onLocaleChange);
     super.dispose();
   }
 
@@ -36,7 +43,17 @@ class _UGoDriverAppState extends State<UGoDriverApp> {
       theme: AppTheme.lightTheme,
       routerConfig: AppRouter.router,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('en'),
+      locale: appLocale.value,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('am'),
+      ],
     );
   }
 }

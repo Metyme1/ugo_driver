@@ -4,6 +4,7 @@ import '../../config/theme.dart';
 import '../../models/university_scan_model.dart';
 import '../../services/university_scan_service.dart';
 import '../../services/api_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/common/app_button.dart';
 
 class UniversityScanResultScreen extends StatefulWidget {
@@ -45,17 +46,16 @@ class _UniversityScanResultScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          _result != null ? 'Boarding Confirmed' : 'University Ticket',
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Builder(builder: (ctx) {
+          final l = AppLocalizations.of(ctx)!;
+          return Text(_result != null ? l.rideRecorded : 'University Ticket', style: const TextStyle(color: Colors.white));
+        }),
         automaticallyImplyLeading: false,
         actions: [
-          TextButton(
-            onPressed: () => context.go('/scan'),
-            child: const Text('Scan Again',
-                style: TextStyle(color: Colors.white)),
-          ),
+          Builder(builder: (ctx) {
+            final l = AppLocalizations.of(ctx)!;
+            return TextButton(onPressed: () => context.go('/scan'), child: Text(l.scanAgain, style: const TextStyle(color: Colors.white)));
+          }),
         ],
       ),
       body: SingleChildScrollView(
@@ -154,19 +154,12 @@ class _UniversityScanResultScreenState
         ),
         const SizedBox(height: 28),
 
-        AppButton(
-          label: 'Confirm Boarding',
-          onPressed: _confirming ? null : _confirm,
-          icon: _confirming ? null : Icons.check_circle_outline,
-          isLoading: _confirming,
-        ),
+        AppButton(label: 'Confirm Boarding', onPressed: _confirming ? null : _confirm, icon: _confirming ? null : Icons.check_circle_outline, isLoading: _confirming),
         const SizedBox(height: 12),
-        AppButton(
-          label: 'Cancel',
-          onPressed: () => context.go('/scan'),
-          icon: Icons.close,
-          outlined: true,
-        ),
+        Builder(builder: (ctx) {
+          final l = AppLocalizations.of(ctx)!;
+          return AppButton(label: l.cancel, onPressed: () => context.go('/scan'), icon: Icons.close, outlined: true);
+        }),
         const SizedBox(height: 16),
       ],
     );
@@ -247,18 +240,14 @@ class _UniversityScanResultScreenState
         ),
         const SizedBox(height: 28),
 
-        AppButton(
-          label: 'Done',
-          onPressed: () => context.go('/home'),
-          icon: Icons.home,
-        ),
-        const SizedBox(height: 12),
-        AppButton(
-          label: 'Scan Another',
-          onPressed: () => context.go('/scan'),
-          icon: Icons.qr_code_scanner,
-          outlined: true,
-        ),
+        Builder(builder: (ctx) {
+          final l = AppLocalizations.of(ctx)!;
+          return Column(children: [
+            AppButton(label: l.done, onPressed: () => context.go('/home'), icon: Icons.home),
+            const SizedBox(height: 12),
+            AppButton(label: l.scanAnother, onPressed: () => context.go('/scan'), icon: Icons.qr_code_scanner, outlined: true),
+          ]);
+        }),
         const SizedBox(height: 16),
       ],
     );

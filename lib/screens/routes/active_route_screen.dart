@@ -1,16 +1,13 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/daily_trip_model.dart';
 import '../../services/api_service.dart';
 import '../../services/trip_service.dart';
 import '../../utils/responsive.dart';
 
-/// Screen shown while the driver is actively running a route.
-/// - Streams GPS location to the backend every 5 seconds.
-/// - Lets the driver mark each student as picked up / dropped off.
-/// - Has an "End Route" button to complete the trip.
 class ActiveRouteScreen extends StatefulWidget {
   final String tripId;
   final String tripLabel;
@@ -48,10 +45,8 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     super.dispose();
   }
 
-  // â”€â”€ Location streaming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   void _startLocationStream() {
-    _sendLocation(); // immediate first send
+    _sendLocation();
     _locationTimer = Timer.periodic(
       const Duration(seconds: 5),
       (_) => _sendLocation(),
@@ -59,22 +54,19 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   }
 
   Future<void> _sendLocation() async {
-    debugPrint('[GPS] Requesting positionâ€¦');
+    final l = AppLocalizations.of(context);
+    debugPrint('[GPS] Requesting position…');
     final pos = await DriverTripService.getCurrentPosition();
     if (pos == null) {
-      debugPrint('[GPS] ERROR: position is null (permission denied or GPS off)');
-      if (mounted) setState(() => _locationError = 'Location permission denied');
+      debugPrint('[GPS] ERROR: position is null');
+      if (mounted) setState(() => _locationError = l?.locationPermissionDenied ?? 'Location permission denied');
       return;
     }
-    debugPrint('[GPS] Got position: ${pos.latitude}, ${pos.longitude}');
     final sent = await _service.updateLocation(widget.tripId, pos.latitude, pos.longitude);
-    debugPrint('[GPS] Backend update: ${sent ? "OK" : "FAILED"}');
     if (mounted) {
-      setState(() => _locationError = sent ? null : 'Location update failed');
+      setState(() => _locationError = sent ? null : (l?.locationUpdateFailed ?? 'Location update failed'));
     }
   }
-
-  // â”€â”€ Students â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> _loadStudents() async {
     setState(() => _loadingStudents = true);
@@ -106,25 +98,22 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     }
   }
 
-  // â”€â”€ Complete trip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   Future<void> _completeTrip() async {
+    final l = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('End Route?'),
-        content: const Text(
-          'Mark this route as completed?\nParents will be notified that all students have been delivered.',
-        ),
+        title: Text(l.endRouteConfirm),
+        content: Text(l.endRouteMsg),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: const Text('Cancel'),
+            child: Text(l.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('End Route', style: TextStyle(color: Colors.white)),
+            child: Text(l.endRoute, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -136,7 +125,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     try {
       await _service.completeTrip(widget.tripId);
       if (!mounted) return;
-      Navigator.pop(context); // return to route list
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       setState(() => _completing = false);
@@ -150,10 +139,9 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     );
   }
 
-  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final pickedUp   = _students.where((s) => s.pickedUp).length;
     final droppedOff = _students.where((s) => s.droppedOff).length;
 
@@ -165,44 +153,28 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
             onPressed: () => context.push('/scan'),
-            tooltip: 'Scan Passenger QR',
+            tooltip: l.scanPassengerQr,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadStudents,
-            tooltip: 'Refresh students',
+            tooltip: l.refreshStudents,
           ),
         ],
       ),
       body: Column(
         children: [
-          // â”€â”€ Status bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           Container(
             color: AppColors.primary,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               children: [
-                _StatChip(
-                  icon: Icons.people,
-                  label: 'Total',
-                  value: '${_students.length}',
-                ),
+                _StatChip(icon: Icons.people, label: l.total, value: '${_students.length}'),
                 const SizedBox(width: 12),
-                _StatChip(
-                  icon: Icons.directions_bus,
-                  label: 'On board',
-                  value: '$pickedUp',
-                  color: AppColors.warning,
-                ),
+                _StatChip(icon: Icons.directions_bus, label: l.onBoard, value: '$pickedUp', color: AppColors.warning),
                 const SizedBox(width: 12),
-                _StatChip(
-                  icon: Icons.check_circle,
-                  label: 'Delivered',
-                  value: '$droppedOff',
-                  color: Colors.green.shade300,
-                ),
+                _StatChip(icon: Icons.check_circle, label: l.delivered, value: '$droppedOff', color: Colors.green.shade300),
                 const Spacer(),
-                // Live GPS indicator
                 Row(
                   children: [
                     Icon(
@@ -212,7 +184,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _locationError != null ? 'No GPS' : 'Live',
+                      _locationError != null ? l.noGps : l.live,
                       style: const TextStyle(color: Colors.white70, fontSize: 11),
                     ),
                   ],
@@ -221,7 +193,6 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
             ),
           ),
 
-          // â”€â”€ Student list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           if (_locationError != null)
             Container(
               color: AppColors.error.withValues(alpha: 0.1),
@@ -231,10 +202,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
                   const Icon(Icons.warning_amber, color: AppColors.error, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
-                      _locationError!,
-                      style: const TextStyle(color: AppColors.error, fontSize: 12),
-                    ),
+                    child: Text(_locationError!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
                   ),
                 ],
               ),
@@ -244,23 +212,20 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
             child: _loadingStudents
                 ? const Center(child: CircularProgressIndicator())
                 : _students.isEmpty
-                    ? const Center(
-                        child: Text('No students for this trip.',
-                            style: TextStyle(color: AppColors.textSecondary)),
-                      )
+                    ? Center(child: Text(l.noStudentsForTrip, style: const TextStyle(color: AppColors.textSecondary)))
                     : ListView.separated(
                         padding: EdgeInsets.all(context.rv(10.0, 12.0, 16.0)),
                         itemCount: _students.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (_, i) => _StudentCard(
                           status: _students[i],
+                          l: l,
                           onPickup:  () => _markPickup(_students[i]),
                           onDropoff: () => _markDropoff(_students[i]),
                         ),
                       ),
           ),
 
-          // â”€â”€ End route button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           SafeArea(
             child: Padding(
               padding: EdgeInsets.all(context.hPad),
@@ -269,12 +234,9 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _completing ? null : _completeTrip,
                   icon: _completing
-                      ? const SizedBox(
-                          width: 18, height: 18,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Icon(Icons.flag),
-                  label: Text(_completing ? 'Ending Routeâ€¦' : 'End Route'),
+                  label: Text(_completing ? l.endingRoute : l.endRoute),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.error,
                     foregroundColor: Colors.white,
@@ -291,18 +253,13 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   }
 }
 
-// â”€â”€ Student card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 class _StudentCard extends StatelessWidget {
   final StudentTripStatus status;
+  final AppLocalizations l;
   final VoidCallback onPickup;
   final VoidCallback onDropoff;
 
-  const _StudentCard({
-    required this.status,
-    required this.onPickup,
-    required this.onDropoff,
-  });
+  const _StudentCard({required this.status, required this.l, required this.onPickup, required this.onDropoff});
 
   @override
   Widget build(BuildContext context) {
@@ -313,13 +270,13 @@ class _StudentCard extends StatelessWidget {
     String statusText;
     if (dropped) {
       avatarColor = AppColors.success;
-      statusText  = 'Delivered';
+      statusText  = l.delivered;
     } else if (picked) {
       avatarColor = AppColors.warning;
-      statusText  = 'On board';
+      statusText  = l.onBoard;
     } else {
       avatarColor = AppColors.textSecondary;
-      statusText  = 'Waiting';
+      statusText  = l.waiting;
     }
 
     return Card(
@@ -339,17 +296,15 @@ class _StudentCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    status.childName?.isNotEmpty == true ? status.childName! : 'Student',
+                    status.childName?.isNotEmpty == true ? status.childName! : l.student,
                     style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
                   ),
                   Row(
                     children: [
                       if (status.childGrade != null) ...[
-                        Text(
-                          'Grade ${status.childGrade}',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                        ),
-                        const Text(' Â· ', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                        Text(l.gradeLabel(status.childGrade!),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                        const Text(' · ', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
                       ],
                       Text(statusText, style: TextStyle(color: avatarColor, fontSize: 12, fontWeight: FontWeight.w500)),
                     ],
@@ -357,21 +312,10 @@ class _StudentCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Action buttons
             if (!picked && !dropped)
-              _ActionButton(
-                label: 'Picked Up',
-                icon: Icons.directions_bus,
-                color: AppColors.primary,
-                onTap: onPickup,
-              )
+              _ActionButton(label: l.pickedUpAction, icon: Icons.directions_bus, color: AppColors.primary, onTap: onPickup)
             else if (picked && !dropped)
-              _ActionButton(
-                label: 'Drop Off',
-                icon: Icons.place,
-                color: AppColors.success,
-                onTap: onDropoff,
-              )
+              _ActionButton(label: l.dropOff, icon: Icons.place, color: AppColors.success, onTap: onDropoff)
             else
               const Icon(Icons.check_circle, color: AppColors.success, size: 28),
           ],
@@ -387,12 +331,7 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  const _ActionButton({required this.label, required this.icon, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) => ElevatedButton.icon(
@@ -410,20 +349,13 @@ class _ActionButton extends StatelessWidget {
       );
 }
 
-// â”€â”€ Stat chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
 
-  const _StatChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.color = Colors.white,
-  });
+  const _StatChip({required this.icon, required this.label, required this.value, this.color = Colors.white});
 
   @override
   Widget build(BuildContext context) => Column(
@@ -432,13 +364,10 @@ class _StatChip extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 14),
               const SizedBox(width: 4),
-              Text(value,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w500, fontSize: 16)),
+              Text(value, style: TextStyle(color: color, fontWeight: FontWeight.w500, fontSize: 16)),
             ],
           ),
           Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
         ],
       );
 }
-
-

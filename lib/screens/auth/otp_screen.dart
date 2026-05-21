@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class OtpScreen extends StatefulWidget {
@@ -94,8 +95,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
     if (!mounted) return;
     if (success) {
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Phone verified successfully!', style: GoogleFonts.outfit()),
+        content: Text(l.phoneVerifiedSuccessfully, style: GoogleFonts.outfit()),
         backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
@@ -120,6 +122,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -130,7 +133,6 @@ class _OtpScreenState extends State<OtpScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Back button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
@@ -150,7 +152,6 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ),
 
-              // Header
               const SizedBox(height: 16),
               Container(
                 width: 72, height: 72,
@@ -162,10 +163,10 @@ class _OtpScreenState extends State<OtpScreen> {
                 child: const Icon(Icons.lock_outline_rounded, size: 34, color: Colors.white),
               ),
               const SizedBox(height: 16),
-              Text('OTP Verification',
+              Text(l.otpVerification,
                 style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: -0.3)),
               const SizedBox(height: 8),
-              Text('Code sent to', style: GoogleFonts.outfit(color: Colors.white60, fontSize: 14)),
+              Text(l.codeSentTo, style: GoogleFonts.outfit(color: Colors.white60, fontSize: 14)),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -178,7 +179,6 @@ class _OtpScreenState extends State<OtpScreen> {
               ),
               const SizedBox(height: 28),
 
-              // White card
               Expanded(
                 child: SingleChildScrollView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -195,11 +195,10 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                     child: Column(
                       children: [
-                        Text('Enter 6-digit code',
+                        Text(l.enter6DigitCode,
                           style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w400, color: AppColors.textPrimary)),
                         const SizedBox(height: 20),
 
-                        // OTP boxes
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Row(
@@ -263,7 +262,6 @@ class _OtpScreenState extends State<OtpScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Verify button
                         GestureDetector(
                           onTap: auth.isLoading ? null : _verify,
                           child: Container(
@@ -282,7 +280,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                   : Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Text('Verify Code',
+                                        Text(l.verifyCode,
                                           style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
                                         const SizedBox(width: 10),
                                         const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
@@ -294,7 +292,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
                         const SizedBox(height: 20),
 
-                        Text("Didn't receive the code?",
+                        Text(l.didntReceiveCode,
                           style: GoogleFonts.outfit(fontSize: 13, color: AppColors.textSecondary)),
                         const SizedBox(height: 10),
 
@@ -310,7 +308,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                 color: _canResend ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border),
                             ),
                             child: Text(
-                              _canResend ? 'Resend Code' : 'Retry in ${_resendSeconds}s',
+                              _canResend ? l.resendCode : l.retryInSeconds(_resendSeconds),
                               style: GoogleFonts.outfit(
                                 color: _canResend ? AppColors.primary : AppColors.textHint,
                                 fontWeight: FontWeight.w500, fontSize: 14),
@@ -321,7 +319,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         const SizedBox(height: 12),
                         GestureDetector(
                           onTap: () => context.pop(),
-                          child: Text('Change phone number',
+                          child: Text(l.changePhoneNumber,
                             style: GoogleFonts.outfit(
                               color: AppColors.textHint, fontSize: 12,
                               decoration: TextDecoration.underline)),
@@ -340,4 +338,3 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 }
-

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/responsive.dart';
 
@@ -41,6 +42,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final l = AppLocalizations.of(context)!;
     context.read<AuthProvider>().clearError();
     final success = await context.read<AuthProvider>().updateProfile(
       firstName: _firstCtrl.text.trim(),
@@ -50,7 +52,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Profile updated!', style: GoogleFonts.outfit()),
+        content: Text(l.profileUpdated, style: GoogleFonts.outfit()),
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -61,6 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
     final user = auth.user;
     final initials =
@@ -72,16 +75,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('Edit Profile',
+        title: Text(l.editProfile,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 18)),
         leading: GestureDetector(
           onTap: () => context.pop(),
           child: Container(
             margin: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
+            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
             child: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 15),
           ),
         ),
@@ -95,41 +95,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             children: [
               const SizedBox(height: 4),
 
-              // Avatar
               Center(
                 child: Stack(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 80, height: 80,
                       decoration: BoxDecoration(
                         gradient: AppColors.primaryGradient,
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.border, width: 2),
                       ),
                       child: Center(
-                        child: Text(
-                          initials.toUpperCase(),
-                          style: GoogleFonts.outfit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                        child: Text(initials.toUpperCase(),
+                          style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w600, color: Colors.white, letterSpacing: 1)),
                       ),
                     ),
                     Positioned(
-                      bottom: 0,
-                      right: 0,
+                      bottom: 0, right: 0,
                       child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: AppColors.accent,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
+                        width: 26, height: 26,
+                        decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
                         child: const Icon(Icons.camera_alt_rounded, size: 12, color: Colors.white),
                       ),
                     ),
@@ -138,52 +123,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Personal Info
-              _sectionLabel('PERSONAL INFO', AppColors.primary),
+              _sectionLabel(l.personalInfoSection, AppColors.primary),
               const SizedBox(height: 10),
               _card([
-                _field(
-                  controller: _firstCtrl,
-                  label: 'First Name',
-                  icon: Icons.person_outline_rounded,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
+                _field(controller: _firstCtrl, label: l.firstName, icon: Icons.person_outline_rounded,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null),
                 const SizedBox(height: 14),
-                _field(
-                  controller: _lastCtrl,
-                  label: 'Last Name',
-                  icon: Icons.person_outline_rounded,
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                ),
+                _field(controller: _lastCtrl, label: l.lastName, icon: Icons.person_outline_rounded,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? l.required : null),
               ]),
               const SizedBox(height: 16),
 
-              // Contact
-              _sectionLabel('CONTACT', const Color(0xFF0891B2)),
+              _sectionLabel(l.contactSection, const Color(0xFF0891B2)),
               const SizedBox(height: 10),
               _card([
-                _field(
-                  controller: _emailCtrl,
-                  label: 'Email (optional)',
-                  icon: Icons.email_outlined,
+                _field(controller: _emailCtrl, label: l.emailOptional, icon: Icons.email_outlined,
                   type: TextInputType.emailAddress,
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) return null;
-                    if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
+                    if (!v.contains('@') || !v.contains('.')) return l.enterValidEmail;
                     return null;
-                  },
-                ),
+                  }),
                 const SizedBox(height: 14),
-                _field(
-                  controller: _addressCtrl,
-                  label: 'Address (optional)',
-                  icon: Icons.location_on_outlined,
-                  maxLines: 2,
-                ),
+                _field(controller: _addressCtrl, label: l.addressOptional, icon: Icons.location_on_outlined, maxLines: 2),
               ]),
               const SizedBox(height: 24),
 
-              // Error banner
               if (auth.errorMessage != null) ...[
                 Container(
                   width: double.infinity,
@@ -197,17 +162,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(auth.errorMessage!,
-                          style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13)),
-                      ),
+                      Expanded(child: Text(auth.errorMessage!, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13))),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
 
-              // Save button
               GestureDetector(
                 onTap: auth.isLoading ? null : _save,
                 child: Container(
@@ -217,25 +178,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: auth.isLoading ? AppColors.disabled : null,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: auth.isLoading ? null : [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        blurRadius: 14,
-                        offset: const Offset(0, 5),
-                      ),
+                      BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 5)),
                     ],
                   ),
                   child: Center(
                     child: auth.isLoading
-                        ? const SizedBox(width: 22, height: 22,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(Icons.save_rounded, color: Colors.white, size: 18),
                               const SizedBox(width: 8),
-                              Text('Save Changes',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                              Text(l.saveChanges, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
                             ],
                           ),
                   ),
@@ -252,18 +206,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _sectionLabel(String title, Color color) {
     return Row(
       children: [
-        Container(
-          width: 3, height: 13,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
-        ),
+        Container(width: 3, height: 13, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
         const SizedBox(width: 8),
-        Text(title,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-            fontSize: 11,
-            letterSpacing: 1.2,
-          )),
+        Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textSecondary, fontSize: 11, letterSpacing: 1.2)),
       ],
     );
   }
@@ -274,13 +219,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(children: children),
     );
@@ -308,23 +247,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Icon(icon, color: AppColors.primary.withValues(alpha: 0.5), size: 20),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 44),
-        filled: true,
-        fillColor: AppColors.inputFill,
+        filled: true, fillColor: AppColors.inputFill,
         contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.error)),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.error, width: 2)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.error, width: 2)),
       ),
     );
   }

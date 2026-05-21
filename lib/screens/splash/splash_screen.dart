@@ -2,6 +2,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/responsive.dart';
 
@@ -206,7 +207,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Loading...',
+                      AppLocalizations.of(context)?.loading ?? 'Loading…',
                       style: TextStyle(
                         fontFamily: 'Outfit',
                         fontSize: 12,

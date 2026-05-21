@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/nomination_model.dart';
 import '../../providers/nomination_provider.dart';
 import '../../services/nomination_service.dart';
@@ -61,10 +62,10 @@ class _NominationDetailScreenState extends State<NominationDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Nomination Detail'),
+        title: Builder(builder: (ctx) => Text(AppLocalizations.of(ctx)!.nominations)),
       ),
       body: _loading
-          ? const LoadingWidget(message: 'Loading details...')
+          ? Builder(builder: (ctx) => LoadingWidget(message: AppLocalizations.of(ctx)!.loadingNominations))
           : _error != null
               ? _ErrorView(message: _error!, onRetry: _loadDetail)
               : _DetailBody(detail: _detail!, provider: provider, nomination: nom),
@@ -165,25 +166,29 @@ class _DetailBody extends StatelessWidget {
           // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
           if (detail.isPending) ...[
             const SizedBox(height: 32),
-            AppButton(
-              label: 'Accept Nomination',
-              icon: Icons.check_circle,
-              onPressed: () => provider.respond(nomination.groupId, 'accepted', onSuccess: () {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(const SnackBar(content: Text('Nomination accepted!')));
-                Navigator.pop(context);
-              }),
-            ),
-            const SizedBox(height: 12),
-            AppButton(
-              label: 'Decline',
-              icon: Icons.cancel,
-              outlined: true,
-              color: AppColors.error,
-              onPressed: () => provider.respond(nomination.groupId, 'declined', onSuccess: () {
-                Navigator.pop(context);
-              }),
-            ),
+            Builder(builder: (ctx) {
+              final l = AppLocalizations.of(ctx)!;
+              return Column(children: [
+                AppButton(
+                  label: l.accept,
+                  icon: Icons.check_circle,
+                  onPressed: () => provider.respond(nomination.groupId, 'accepted', onSuccess: () {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l.nominationAccepted)));
+                    Navigator.pop(context);
+                  }),
+                ),
+                const SizedBox(height: 12),
+                AppButton(
+                  label: l.decline,
+                  icon: Icons.cancel,
+                  outlined: true,
+                  color: AppColors.error,
+                  onPressed: () => provider.respond(nomination.groupId, 'declined', onSuccess: () {
+                    Navigator.pop(context);
+                  }),
+                ),
+              ]);
+            }),
           ],
           const SizedBox(height: 20),
         ],

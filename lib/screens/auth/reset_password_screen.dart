@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -27,9 +28,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _submit() async {
+    final l = AppLocalizations.of(context)!;
     if (_newCtrl.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Password must be at least 6 characters', style: GoogleFonts.outfit()),
+        content: Text(l.passwordTooShort, style: GoogleFonts.outfit()),
         backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
@@ -37,7 +39,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
     if (_newCtrl.text != _confirmCtrl.text) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Passwords do not match', style: GoogleFonts.outfit()),
+        content: Text(l.passwordsDoNotMatch, style: GoogleFonts.outfit()),
         backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
@@ -50,7 +52,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Password reset successfully!', style: GoogleFonts.outfit()),
+        content: Text(l.passwordResetSuccessfully, style: GoogleFonts.outfit()),
         backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
@@ -60,6 +62,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -73,7 +76,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             child: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 15),
           ),
         ),
-        title: Text('New Password', style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
+        title: Text(l.newPasswordTitle, style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -91,16 +94,16 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('New Password', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textSecondary, letterSpacing: 0.3)),
+                  Text(l.newPassword, style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textSecondary, letterSpacing: 0.3)),
                   const SizedBox(height: 8),
-                  _buildField(controller: _newCtrl, hint: 'Min 8 characters', obscure: _obscure,
+                  _buildField(controller: _newCtrl, hint: l.minCharsHint, obscure: _obscure,
                     suffix: GestureDetector(
                       onTap: () => setState(() => _obscure = !_obscure),
                       child: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: AppColors.textHint, size: 20))),
                   const SizedBox(height: 18),
-                  Text('Confirm Password', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textSecondary, letterSpacing: 0.3)),
+                  Text(l.confirmPassword, style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textSecondary, letterSpacing: 0.3)),
                   const SizedBox(height: 8),
-                  _buildField(controller: _confirmCtrl, hint: 'Repeat password', obscure: _obscure),
+                  _buildField(controller: _confirmCtrl, hint: l.repeatPassword, obscure: _obscure),
                   if (auth.errorMessage != null) ...[
                     const SizedBox(height: 14),
                     Container(
@@ -128,7 +131,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       child: Center(
                         child: auth.isLoading
                             ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                            : Text('Reset Password', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                            : Text(l.resetPassword, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
                       ),
                     ),
                   ),
@@ -161,6 +164,3 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
-
-
-

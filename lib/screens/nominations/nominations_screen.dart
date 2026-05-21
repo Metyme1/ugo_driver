@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/nomination_model.dart';
 import '../../providers/nomination_provider.dart';
 import '../../utils/responsive.dart';
@@ -36,6 +37,7 @@ class _NominationsScreenState extends State<NominationsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final provider = context.watch<NominationProvider>();
 
     final pending  = provider.nominations.where((n) => n.myResponse == 'pending').toList();
@@ -45,7 +47,7 @@ class _NominationsScreenState extends State<NominationsScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Nominations',
+        title: Text(l.nominations,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w500, color: AppColors.textPrimary, fontSize: 18)),
         bottom: TabBar(
           controller: _tabController,
@@ -56,20 +58,20 @@ class _NominationsScreenState extends State<NominationsScreen>
           labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
           unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 13),
           tabs: [
-            Tab(text: 'Pending (${pending.length})'),
-            Tab(text: 'Accepted (${accepted.length})'),
-            Tab(text: 'Declined (${declined.length})'),
+            Tab(text: l.pendingCount(pending.length)),
+            Tab(text: l.acceptedCount(accepted.length)),
+            Tab(text: l.declinedCount(declined.length)),
           ],
         ),
       ),
       body: provider.isLoading
-          ? const LoadingWidget(message: 'Loading nominations...')
+          ? LoadingWidget(message: l.loadingNominations)
           : TabBarView(
               controller: _tabController,
               children: [
-                _NominationList(nominations: pending, showActions: true),
-                _NominationList(nominations: accepted, showActions: false),
-                _NominationList(nominations: declined, showActions: false),
+                _NominationList(nominations: pending, showActions: true, l: l),
+                _NominationList(nominations: accepted, showActions: false, l: l),
+                _NominationList(nominations: declined, showActions: false, l: l),
               ],
             ),
     );
@@ -79,7 +81,8 @@ class _NominationsScreenState extends State<NominationsScreen>
 class _NominationList extends StatelessWidget {
   final List<DriverNomination> nominations;
   final bool showActions;
-  const _NominationList({required this.nominations, required this.showActions});
+  final AppLocalizations l;
+  const _NominationList({required this.nominations, required this.showActions, required this.l});
 
   @override
   Widget build(BuildContext context) {
@@ -90,15 +93,12 @@ class _NominationList extends StatelessWidget {
           children: [
             Container(
               width: 80, height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.07),
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.07), shape: BoxShape.circle),
               child: const Icon(Icons.inbox_outlined, size: 40, color: AppColors.primary),
             ),
             const SizedBox(height: 16),
             Text(
-              showActions ? 'No pending nominations' : 'None yet',
+              showActions ? l.noPendingNominations : l.noneYet,
               style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
@@ -112,8 +112,7 @@ class _NominationList extends StatelessWidget {
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(context.hPad, 16, context.hPad, 32),
         itemCount: nominations.length,
-        itemBuilder: (context, i) => _NominationCard(
-          nomination: nominations[i], showActions: showActions),
+        itemBuilder: (context, i) => _NominationCard(nomination: nominations[i], showActions: showActions, l: l),
       ),
     );
   }
@@ -122,7 +121,8 @@ class _NominationList extends StatelessWidget {
 class _NominationCard extends StatelessWidget {
   final DriverNomination nomination;
   final bool showActions;
-  const _NominationCard({required this.nomination, required this.showActions});
+  final AppLocalizations l;
+  const _NominationCard({required this.nomination, required this.showActions, required this.l});
 
   @override
   Widget build(BuildContext context) {
@@ -161,15 +161,14 @@ class _NominationCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(nomination.groupName,
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: context.fsTitle,
-                            color: AppColors.textPrimary)),
+                          style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: context.fsTitle, color: AppColors.textPrimary)),
                         const SizedBox(height: 2),
                         Text(nomination.schoolName,
                           style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: context.fsBody)),
                       ],
                     ),
                   ),
-                  _StatusBadge(response: nomination.myResponse),
+                  _StatusBadge(response: nomination.myResponse, l: l),
                 ],
               ),
             ),
@@ -180,14 +179,10 @@ class _NominationCard extends StatelessWidget {
                 children: [
                   _InfoChip(icon: Icons.directions_car_rounded, label: nomination.vehicleType),
                   const SizedBox(width: 10),
-                  _InfoChip(
-                    icon: Icons.people_rounded,
-                    label: '${nomination.currentMembers}/${nomination.capacity}',
-                  ),
+                  _InfoChip(icon: Icons.people_rounded, label: '${nomination.currentMembers}/${nomination.capacity}'),
                   if (nomination.pickupAddress != null) ...[
                     const SizedBox(width: 10),
-                    Expanded(child: _InfoChip(
-                      icon: Icons.location_on_rounded, label: nomination.pickupAddress!)),
+                    Expanded(child: _InfoChip(icon: Icons.location_on_rounded, label: nomination.pickupAddress!)),
                   ],
                 ],
               ),
@@ -212,8 +207,7 @@ class _NominationCard extends StatelessWidget {
                             children: [
                               const Icon(Icons.close_rounded, size: 16, color: AppColors.error),
                               const SizedBox(width: 6),
-                              Text('Decline',
-                                style: GoogleFonts.outfit(color: AppColors.error, fontWeight: FontWeight.w500, fontSize: 13)),
+                              Text(l.decline, style: GoogleFonts.outfit(color: AppColors.error, fontWeight: FontWeight.w500, fontSize: 13)),
                             ],
                           ),
                         ),
@@ -224,7 +218,7 @@ class _NominationCard extends StatelessWidget {
                       child: GestureDetector(
                         onTap: () => provider.respond(nomination.groupId, 'accepted', onSuccess: () {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('Nomination accepted!', style: GoogleFonts.outfit()),
+                            content: Text(l.nominationAccepted, style: GoogleFonts.outfit()),
                             backgroundColor: AppColors.success,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -242,8 +236,7 @@ class _NominationCard extends StatelessWidget {
                             children: [
                               const Icon(Icons.check_rounded, size: 16, color: Colors.white),
                               const SizedBox(width: 6),
-                              Text('Accept',
-                                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
+                              Text(l.accept, style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13)),
                             ],
                           ),
                         ),
@@ -261,16 +254,17 @@ class _NominationCard extends StatelessWidget {
 
 class _StatusBadge extends StatelessWidget {
   final String response;
-  const _StatusBadge({required this.response});
+  final AppLocalizations l;
+  const _StatusBadge({required this.response, required this.l});
 
   @override
   Widget build(BuildContext context) {
     Color color;
     String label;
     switch (response) {
-      case 'accepted': color = AppColors.success; label = 'Accepted'; break;
-      case 'declined': color = AppColors.error;   label = 'Declined'; break;
-      default:         color = AppColors.warning;  label = 'Pending';
+      case 'accepted': color = AppColors.success; label = l.accepted; break;
+      case 'declined': color = AppColors.error;   label = l.declined; break;
+      default:         color = AppColors.warning;  label = l.pending;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
@@ -279,8 +273,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(label,
-        style: GoogleFonts.outfit(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+      child: Text(label, style: GoogleFonts.outfit(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
     );
   }
 }
@@ -306,6 +299,3 @@ class _InfoChip extends StatelessWidget {
     );
   }
 }
-
-
-

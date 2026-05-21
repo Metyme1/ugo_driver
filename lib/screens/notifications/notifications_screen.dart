@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/notifications_provider.dart';
 import '../../widgets/common/loading_widget.dart';
 
@@ -23,22 +24,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _confirmClearAll(NotificationsProvider provider) async {
+    final l = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Clear All', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-        content: Text('Delete all notifications? This cannot be undone.',
+        title: Text(l.clearAll, style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
+        content: Text(l.deleteAllNotificationsConfirm,
           style: GoogleFonts.outfit(fontSize: 14, color: AppColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.outfit(color: AppColors.textSecondary)),
+            child: Text(l.cancel, style: GoogleFonts.outfit(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Clear All',
-              style: GoogleFonts.outfit(color: AppColors.error, fontWeight: FontWeight.w600)),
+            child: Text(l.clearAll, style: GoogleFonts.outfit(color: AppColors.error, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -48,6 +49,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final provider = context.watch<NotificationsProvider>();
 
     return Scaffold(
@@ -55,15 +57,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('Notifications',
+        title: Text(l.notifications,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: 18)),
         actions: [
           if (provider.unreadCount > 0)
             TextButton(
               onPressed: () => provider.markAllAsRead(),
-              child: Text('Mark all read',
-                style: GoogleFonts.outfit(
-                  color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500)),
+              child: Text(l.markAllRead,
+                style: GoogleFonts.outfit(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500)),
             ),
           if (provider.notifications.isNotEmpty)
             PopupMenuButton<String>(
@@ -76,8 +77,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     children: [
                       const Icon(Icons.delete_sweep_rounded, color: AppColors.error, size: 18),
                       const SizedBox(width: 10),
-                      Text('Clear all',
-                        style: GoogleFonts.outfit(color: AppColors.error, fontSize: 14)),
+                      Text(l.clearAll, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -87,9 +87,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ],
       ),
       body: provider.isLoading
-          ? const LoadingWidget(message: 'Loading notifications...')
+          ? LoadingWidget(message: l.loadingNotifications)
           : provider.notifications.isEmpty
-              ? _buildEmpty()
+              ? _buildEmpty(l)
               : RefreshIndicator(
                   onRefresh: () => provider.loadNotifications(),
                   color: AppColors.primary,
@@ -101,6 +101,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       final n = provider.notifications[i];
                       return _NotificationTile(
                         notification: n,
+                        l: l,
                         onTap: () { if (!n.isRead) provider.markAsRead(n.id); },
                         onDelete: () => provider.deleteNotification(n.id),
                       );
@@ -110,7 +111,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(AppLocalizations l) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -124,11 +125,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: const Icon(Icons.notifications_none_rounded, size: 44, color: AppColors.primary),
           ),
           const SizedBox(height: 20),
-          Text('All caught up!',
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w600, fontSize: 18, color: AppColors.textPrimary)),
+          Text(l.allCaughtUp,
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 18, color: AppColors.textPrimary)),
           const SizedBox(height: 6),
-          Text('No notifications yet',
+          Text(l.noNotificationsYet,
             style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 14)),
         ],
       ),
@@ -136,15 +136,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
-// ── Per-item tile with swipe-to-delete ───────────────────────────────────────
-
 class _NotificationTile extends StatelessWidget {
   final dynamic notification;
+  final AppLocalizations l;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const _NotificationTile({
     required this.notification,
+    required this.l,
     required this.onTap,
     required this.onDelete,
   });
@@ -169,7 +169,7 @@ class _NotificationTile extends StatelessWidget {
           children: [
             const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 24),
             const SizedBox(height: 4),
-            Text('Delete', style: GoogleFonts.outfit(color: AppColors.error, fontSize: 11)),
+            Text(l.delete, style: GoogleFonts.outfit(color: AppColors.error, fontSize: 11)),
           ],
         ),
       ),
@@ -180,14 +180,10 @@ class _NotificationTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: n.isRead
-                ? Colors.white
-                : AppColors.primary.withValues(alpha: 0.04),
+            color: n.isRead ? Colors.white : AppColors.primary.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: n.isRead
-                  ? AppColors.border.withValues(alpha: 0.5)
-                  : AppColors.primary.withValues(alpha: 0.15),
+              color: n.isRead ? AppColors.border.withValues(alpha: 0.5) : AppColors.primary.withValues(alpha: 0.15),
             ),
             boxShadow: [
               BoxShadow(
@@ -217,26 +213,19 @@ class _NotificationTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(n.title,
-                            style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                              color: AppColors.textPrimary,
-                            )),
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textPrimary)),
                         ),
                         if (!n.isRead)
                           Container(
                             width: 8, height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary, shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
                           ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(n.body,
-                      style: GoogleFonts.outfit(
-                        color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
+                    Text(n.body, style: GoogleFonts.outfit(color: AppColors.textSecondary, fontSize: 13, height: 1.4)),
                     const SizedBox(height: 6),
-                    Text(_timeAgo(n.createdAt),
+                    Text(_timeAgo(n.createdAt, l),
                       style: GoogleFonts.outfit(color: AppColors.textHint, fontSize: 11)),
                   ],
                 ),
@@ -268,12 +257,13 @@ class _NotificationTile extends StatelessWidget {
     }
   }
 
-  String _timeAgo(DateTime dt) {
+  String _timeAgo(DateTime dt, AppLocalizations l) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1)  return 'just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24)   return '${diff.inHours}h ago';
-    if (diff.inDays < 7)     return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1)  return l.justNow;
+    if (diff.inMinutes < 60) return l.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24)   return l.hoursAgo(diff.inHours);
+    if (diff.inDays == 1)    return l.yesterday;
+    if (diff.inDays < 7)     return l.daysAgo(diff.inDays);
     return DateFormat('MMM d').format(dt);
   }
 }

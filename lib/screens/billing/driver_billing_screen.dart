@@ -2,6 +2,7 @@
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/driver_billing_model.dart';
 import '../../providers/driver_billing_provider.dart';
 
@@ -55,8 +56,8 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('My Earnings',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        title: Text(AppLocalizations.of(context)!.myEarnings,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         iconTheme: const IconThemeData(color: AppColors.primary),
         bottom: TabBar(
           controller: _tabs,
@@ -66,11 +67,11 @@ class _DriverBillingScreenState extends State<DriverBillingScreen>
           indicatorWeight: 3,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
-          tabs: const [
-            Tab(text: 'Summary'),
-            Tab(text: 'Daily'),
-            Tab(text: 'Earnings'),
-            Tab(text: 'Platform Fee'),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.summary),
+            Tab(text: AppLocalizations.of(context)!.daily),
+            Tab(text: AppLocalizations.of(context)!.earnings),
+            Tab(text: AppLocalizations.of(context)!.platformFee),
           ],
         ),
       ),
@@ -201,46 +202,25 @@ class _BreakdownCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.account_balance_wallet, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text('Revenue Breakdown',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _BRow(
-            label: 'Gross Revenue',
-            sub: 'from parents',
-            amount: summary.grossTotal,
-            color: AppColors.info,
-            icon: Icons.arrow_downward,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: AppColors.border),
-          ),
-          _BRow(
-            label: 'UGO Commission',
-            sub: '15% platform fee',
-            amount: summary.ugoCommissionTotal,
-            color: AppColors.warning,
-            icon: Icons.remove,
-            negative: true,
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Divider(color: AppColors.border, thickness: 2),
-          ),
-          _BRow(
-            label: 'Your Net Earnings',
-            sub: 'before platform sub',
-            amount: summary.netEarnings,
-            color: AppColors.success,
-            icon: Icons.check_circle_outline,
-            large: true,
-          ),
+          Builder(builder: (context) {
+            final l = AppLocalizations.of(context)!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.account_balance_wallet, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(l.revenueBreakdown, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                ]),
+                const SizedBox(height: 20),
+                _BRow(label: l.grossRevenue, sub: l.fromParents, amount: summary.grossTotal, color: AppColors.info, icon: Icons.arrow_downward),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(color: AppColors.border)),
+                _BRow(label: l.ugoCommission, sub: l.platformFeePercent, amount: summary.ugoCommissionTotal, color: AppColors.warning, icon: Icons.remove, negative: true),
+                const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(color: AppColors.border, thickness: 2)),
+                _BRow(label: l.yourNetEarnings, sub: l.beforePlatformSub, amount: summary.netEarnings, color: AppColors.success, icon: Icons.check_circle_outline, large: true),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -312,19 +292,15 @@ class _ActivityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _StatBox(
-          icon: Icons.directions_car_outlined,
-          value: '${summary.tripCount}',
-          label: 'Trips Done',
-          color: AppColors.primary,
-        )),
+        Builder(builder: (context) {
+          final l = AppLocalizations.of(context)!;
+          return Expanded(child: _StatBox(icon: Icons.directions_car_outlined, value: '${summary.tripCount}', label: l.tripsDone, color: AppColors.primary));
+        }),
         const SizedBox(width: 12),
-        Expanded(child: _StatBox(
-          icon: Icons.receipt_long_outlined,
-          value: '${summary.subscriptionCount}',
-          label: 'Subscriptions',
-          color: AppColors.secondary,
-        )),
+        Builder(builder: (context) {
+          final l = AppLocalizations.of(context)!;
+          return Expanded(child: _StatBox(icon: Icons.receipt_long_outlined, value: '${summary.subscriptionCount}', label: l.subscriptions, color: AppColors.secondary));
+        }),
       ],
     );
   }
@@ -389,22 +365,23 @@ class _PayoutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.payments_outlined, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text('Estimated Payout',
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            '${summary.estimatedPayout.toStringAsFixed(0)} ETB',
-            style: const TextStyle(
-                fontSize: 34, fontWeight: FontWeight.w500, color: AppColors.success),
-          ),
-          const Text('Take-home this month',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          Builder(builder: (context) {
+            final l = AppLocalizations.of(context)!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.payments_outlined, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(l.estimatedPayout, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+                ]),
+                const SizedBox(height: 16),
+                Text('${summary.estimatedPayout.toStringAsFixed(0)} ETB',
+                    style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w500, color: AppColors.success)),
+                Text(l.takeHomeThisMonth, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              ],
+            );
+          }),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(12),
@@ -421,8 +398,8 @@ class _PayoutCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Platform subscription',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    Builder(builder: (context) => Text(AppLocalizations.of(context)!.platformSubscription,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
                     Row(
                       children: [
                         Container(
@@ -458,8 +435,8 @@ class _PayoutCard extends StatelessWidget {
                 // Platform Fee is now tab index 3
                 onPressed: () => DefaultTabController.of(context).animateTo(3),
                 icon: const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-                label: const Text('Pay Platform Fee',
-                    style: TextStyle(color: AppColors.warning)),
+                label: Builder(builder: (context) => Text(AppLocalizations.of(context)!.payPlatformFee,
+                    style: const TextStyle(color: AppColors.warning))),
                 style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.warning)),
               ),
@@ -630,8 +607,8 @@ class _DailySummaryBar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('Total Earned This Month',
-              style: TextStyle(color: Colors.white70, fontSize: 12)),
+          Builder(builder: (context) => Text(AppLocalizations.of(context)!.totalEarnedThisMonth,
+              style: const TextStyle(color: Colors.white70, fontSize: 12))),
           const SizedBox(height: 4),
           Text(
             'ETB ${combined.toStringAsFixed(0)}',
@@ -723,22 +700,14 @@ class _EarningsToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _ToggleBtn(
-            label: 'Package Earnings',
-            icon: Icons.qr_code_scanner,
-            amount: packageTotal,
-            selected: showPackage,
-            color: AppColors.primary,
-            onTap: () => onToggle(true),
-          ),
-          _ToggleBtn(
-            label: 'Subscription',
-            icon: Icons.route_outlined,
-            amount: subTotal,
-            selected: !showPackage,
-            color: AppColors.success,
-            onTap: () => onToggle(false),
-          ),
+          Builder(builder: (context) {
+            final l = AppLocalizations.of(context)!;
+            return _ToggleBtn(label: l.packageEarnings, icon: Icons.qr_code_scanner, amount: packageTotal, selected: showPackage, color: AppColors.primary, onTap: () => onToggle(true));
+          }),
+          Builder(builder: (context) {
+            final l = AppLocalizations.of(context)!;
+            return _ToggleBtn(label: l.subscriptions, icon: Icons.route_outlined, amount: subTotal, selected: !showPackage, color: AppColors.success, onTap: () => onToggle(false));
+          }),
         ],
       ),
     );
@@ -1103,7 +1072,7 @@ class _PackageDaySheet extends StatelessWidget {
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.primary)),
                         Text(
-                          'Gross: ${gross.toStringAsFixed(0)}  âˆ’  Commission: ${commission.toStringAsFixed(0)}',
+                          'Gross: ${gross.toStringAsFixed(0)}  -  Commission: ${commission.toStringAsFixed(0)}',
                           style: const TextStyle(
                               fontSize: 11, color: AppColors.textHint),
                         ),
@@ -1343,7 +1312,7 @@ class _SubDaySheet extends StatelessWidget {
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.success)),
                         Text(
-                          'Gross: ${gross.toStringAsFixed(0)}  âˆ’  Commission: ${commission.toStringAsFixed(0)}',
+                          'Gross: ${gross.toStringAsFixed(0)}  -  Commission: ${commission.toStringAsFixed(0)}',
                           style: const TextStyle(
                               fontSize: 11, color: AppColors.textHint),
                         ),
@@ -1398,17 +1367,16 @@ class _SubRouteRow extends StatelessWidget {
   final DriverEarningRecord record;
   const _SubRouteRow({required this.record});
 
-  static const _routeLabels = {
-    'morning_to_school':   'Morning â†’ School',
-    'midday_to_home':      'Midday â†’ Home',
-    'afternoon_to_school': 'Afternoon â†’ School',
-    'afternoon_to_home':   'Afternoon â†’ Home',
-  };
-
   @override
   Widget build(BuildContext context) {
-    final routeLabel =
-        _routeLabels[record.routeType] ?? record.routeType ?? 'Route';
+    final l = AppLocalizations.of(context)!;
+    final routeLabels = {
+      'morning_to_school':   l.routeMorningToSchool,
+      'midday_to_home':      l.routeMiddayToHome,
+      'afternoon_to_school': l.routeAfternoonToSchool,
+      'afternoon_to_home':   l.routeAfternoonToHome,
+    };
+    final routeLabel = routeLabels[record.routeType] ?? record.routeType ?? l.route;
     final time = record.earnedAt != null
         ? '${record.earnedAt!.hour.toString().padLeft(2, '0')}:${record.earnedAt!.minute.toString().padLeft(2, '0')}'
         : '';
@@ -1840,13 +1808,6 @@ class _EarningCard extends StatelessWidget {
   final DriverEarningRecord earning;
   const _EarningCard({required this.earning});
 
-  static const _routeLabels = {
-    'morning_to_school':   'Morning â†’ School  07:00',
-    'midday_to_home':      'Midday â†’ Home  12:00',
-    'afternoon_to_school': 'Afternoon â†’ School  14:00',
-    'afternoon_to_home':   'Afternoon â†’ Home  16:30',
-  };
-
   static Color _typeColor(String type) {
     switch (type) {
       case 'trip_earning':    return AppColors.primary;
@@ -1879,11 +1840,18 @@ class _EarningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final color = _typeColor(earning.type);
     final icon  = _typeIcon(earning.type);
     final isTrip = earning.type == 'trip_earning';
     final isUni  = earning.type == 'university_ride';
     final isPkg  = earning.type == 'package_scan' || earning.type == 'package';
+    final routeLabels = {
+      'morning_to_school':   '${l.routeMorningToSchool}  07:00',
+      'midday_to_home':      '${l.routeMiddayToHome}  12:00',
+      'afternoon_to_school': '${l.routeAfternoonToSchool}  14:00',
+      'afternoon_to_home':   '${l.routeAfternoonToHome}  16:30',
+    };
 
     return Container(
       decoration: BoxDecoration(
@@ -1937,10 +1905,10 @@ class _EarningCard extends StatelessWidget {
                   isUni
                       ? 'Boarding confirmed'
                       : isTrip
-                          ? (_routeLabels[earning.routeType] ?? earning.routeType ?? '')
+                          ? (routeLabels[earning.routeType] ?? earning.routeType ?? '')
                           : isPkg
-                              ? 'Package scanned'
-                              : 'Subscription verified',
+                              ? l.packageScan
+                              : l.subscriptions,
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 if (earning.earnedAt != null) ...[

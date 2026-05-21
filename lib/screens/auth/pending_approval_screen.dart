@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class PendingApprovalScreen extends StatelessWidget {
@@ -10,6 +11,7 @@ class PendingApprovalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -22,7 +24,6 @@ class PendingApprovalScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
             child: Column(
               children: [
-                // Animated hourglass icon
                 Container(
                   width: 100, height: 100,
                   decoration: BoxDecoration(
@@ -33,7 +34,7 @@ class PendingApprovalScreen extends StatelessWidget {
                   child: const Icon(Icons.hourglass_top_rounded, size: 48, color: Colors.white),
                 ),
                 const SizedBox(height: 32),
-                Text('Under Review',
+                Text(l.underReview,
                   style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: -0.5)),
                 const SizedBox(height: 14),
                 Container(
@@ -44,7 +45,7 @@ class PendingApprovalScreen extends StatelessWidget {
                     border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   ),
                   child: Text(
-                    'Your registration is complete. Our admin team is reviewing your information and documents.\n\nYou will be notified once your account is approved.',
+                    l.pendingReviewMessage,
                     style: GoogleFonts.outfit(color: Colors.white.withValues(alpha: 0.85), fontSize: 14, height: 1.7),
                     textAlign: TextAlign.center,
                   ),
@@ -52,25 +53,11 @@ class PendingApprovalScreen extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
-                // Steps
-                const _StepItem(
-                  step: '1',
-                  label: 'Registration submitted',
-                  done: true,
-                ),
+                _StepItem(step: '1', label: l.registrationSubmitted, done: true),
                 const SizedBox(height: 12),
-                const _StepItem(
-                  step: '2',
-                  label: 'Document verification in progress',
-                  done: false,
-                ),
+                _StepItem(step: '2', label: l.documentVerificationInProgress, done: false),
                 const SizedBox(height: 12),
-                const _StepItem(
-                  step: '3',
-                  label: 'Account activation',
-                  done: false,
-                  pending: true,
-                ),
+                _StepItem(step: '3', label: l.accountActivation, done: false, pending: true),
 
                 if (auth.user != null) ...[
                   const SizedBox(height: 32),
@@ -128,7 +115,7 @@ class PendingApprovalScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
                         const SizedBox(width: 8),
-                        Text('Sign Out',
+                        Text(l.signOut,
                           style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15)),
                       ],
                     ),
@@ -180,7 +167,7 @@ class _StepItem extends StatelessWidget {
               style: GoogleFonts.outfit(
                 color: done ? Colors.white : Colors.white70,
                 fontSize: 13,
-                fontWeight: done ? FontWeight.w400 : FontWeight.w400,
+                fontWeight: FontWeight.w400,
               )),
           ),
           if (!done && !pending)
@@ -195,4 +182,3 @@ class _StepItem extends StatelessWidget {
     );
   }
 }
-

@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final auth = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -83,10 +85,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   child: const Icon(Icons.lock_reset_rounded, size: 32, color: Colors.white),
                 ),
                 const SizedBox(height: 16),
-                Text('Forgot Password?',
+                Text(l.forgotPasswordTitle,
                   style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w500, color: Colors.white, letterSpacing: -0.3)),
                 const SizedBox(height: 6),
-                Text('We\'ll send a code to your phone',
+                Text(l.sendCodeToPhone,
                   style: GoogleFonts.outfit(fontSize: 14, color: Colors.white.withValues(alpha: 0.7))),
                 const SizedBox(height: 36),
                 Expanded(
@@ -104,7 +106,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Phone Number',
+                          Text(l.phoneNumber,
                             style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w400, color: AppColors.textSecondary, letterSpacing: 0.3)),
                           const SizedBox(height: 8),
                           TextFormField(
@@ -151,7 +153,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 child: auth.isLoading
                                     ? const SizedBox(width: 22, height: 22,
                                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                                    : Text('Send OTP',
+                                    : Text(l.sendOtp,
                                         style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
                               ),
                             ),
@@ -169,4 +171,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-

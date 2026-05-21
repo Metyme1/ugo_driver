@@ -1,9 +1,10 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../config/theme.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/group_service.dart';
 import '../../services/university_scan_service.dart';
 import '../../services/nfc_scan_service.dart';
@@ -17,8 +18,7 @@ class ScanQrScreen extends StatefulWidget {
   State<ScanQrScreen> createState() => _ScanQrScreenState();
 }
 
-class _ScanQrScreenState extends State<ScanQrScreen>
-    with WidgetsBindingObserver {
+class _ScanQrScreenState extends State<ScanQrScreen> with WidgetsBindingObserver {
   final _groupService = GroupService();
   final _uniService = UniversityScanService(ApiService());
   final _nfcService = NfcScanService();
@@ -27,10 +27,9 @@ class _ScanQrScreenState extends State<ScanQrScreen>
 
   bool _isProcessing = false;
   bool _nfcMode = false;
-  bool _nfcWaiting = false; // NFC session is active, waiting for tap
+  bool _nfcWaiting = false;
   bool _isOffline = false;
 
-  // QR debounce state
   Timer? _debounce;
   String? _pendingValue;
   bool _isLocked = false;
@@ -40,7 +39,6 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     super.initState();
     _controller = MobileScannerController(autoStart: true);
     WidgetsBinding.instance.addObserver(this);
-    // Defer until after the first frame so the camera surface attaches cleanly
     WidgetsBinding.instance.addPostFrameCallback((_) => _initConnectivity());
   }
 
@@ -53,9 +51,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
         _updateOfflineState(results);
         if (wasOffline && !_isOffline) _syncOfflineQueue();
       });
-    } catch (_) {
-      // connectivity unavailable â€” stay online-assumed, camera unaffected
-    }
+    } catch (_) {}
   }
 
   void _updateOfflineState(List<ConnectivityResult> results) {
@@ -66,8 +62,12 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   Future<void> _syncOfflineQueue() async {
     final count = await _groupService.syncOfflineScans();
     if (count > 0 && mounted) {
+      final l = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Synced $count offline ride${count == 1 ? '' : 's'}'), backgroundColor: AppColors.success),
+        SnackBar(
+          content: Text(count == 1 ? l.syncedOfflineRide(count) : l.syncedOfflineRides(count)),
+          backgroundColor: AppColors.success,
+        ),
       );
     }
   }
@@ -97,8 +97,6 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     super.dispose();
   }
 
-  // â”€â”€ Mode switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   Future<void> _switchMode(bool nfc) async {
     if (_isProcessing) return;
     if (nfc == _nfcMode) return;
@@ -107,7 +105,6 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     if (nfc) {
       _controller.stop();
       setState(() { _nfcMode = true; _pendingValue = null; _isLocked = false; });
-      // Start NFC session immediately so Android doesn't intercept the tag
       await _startNfcScan();
     } else {
       if (_nfcWaiting) {
@@ -119,8 +116,6 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     }
   }
 
-  // â”€â”€ QR flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing || _nfcMode) return;
     final rawValue = capture.barcodes.firstOrNull?.rawValue;
@@ -128,10 +123,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
 
     if (rawValue != _pendingValue) {
       _debounce?.cancel();
-      setState(() {
-        _pendingValue = rawValue;
-        _isLocked = false;
-      });
+      setState(() { _pendingValue = rawValue; _isLocked = false; });
       _debounce = Timer(const Duration(milliseconds: 900), () {
         if (!mounted || _isProcessing) return;
         setState(() => _isLocked = true);
@@ -144,11 +136,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
   }
 
   Future<void> _processQr(String rawValue) async {
-    setState(() {
-      _isProcessing = true;
-      _isLocked = false;
-      _pendingValue = null;
-    });
+    setState(() { _isProcessing = true; _isLocked = false; _pendingValue = null; });
     _debounce?.cancel();
     _controller.stop();
 
@@ -199,23 +187,14 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     }
   }
 
-  // â”€â”€ NFC flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  // Starts NFC reader mode and awaits its registration before returning.
-  // This guarantees Android's dispatch is suppressed before any card arrives.
   Future<void> _startNfcScan() async {
     if (_isProcessing || _nfcWaiting) return;
-
     setState(() { _nfcWaiting = true; _isProcessing = false; });
 
-    // await ensures enableReaderMode() is registered on the Android NfcAdapter
-    // before this function returns â€” no more race with Android's system dispatch.
     await _nfcService.startListening(
       onTagRead: (uid) async {
         if (!mounted || _isProcessing) return;
         setState(() { _nfcWaiting = false; _isProcessing = true; });
-
-        // Stop session while we look up the package â€” restart after if needed
         await _nfcService.stopSession();
 
         final response = await _nfcService.previewScan(uid);
@@ -233,7 +212,6 @@ class _ScanQrScreenState extends State<ScanQrScreen>
         if (!mounted) return;
         setState(() { _nfcWaiting = false; _isProcessing = false; });
         _showError(error);
-        // Brief pause then restart so the driver can try again
         if (mounted && _nfcMode) {
           Future.delayed(const Duration(milliseconds: 600), () {
             if (mounted && _nfcMode) _startNfcScan();
@@ -248,60 +226,52 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     setState(() { _nfcWaiting = false; _isProcessing = false; });
   }
 
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   void _showError(String message) {
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(children: [
-          Icon(Icons.error_outline, color: AppColors.error),
-          SizedBox(width: 8),
-          Text('Scan Failed'),
+        title: Row(children: [
+          const Icon(Icons.error_outline, color: AppColors.error),
+          const SizedBox(width: 8),
+          Text(l.scanFailed),
         ]),
         content: Text(message),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l.done)),
         ],
       ),
     );
   }
 
-  // â”€â”€ Build â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(_nfcMode ? 'Scan â€” NFC Card' : 'Scan â€” QR Code'),
+        title: Text(_nfcMode ? l.scanNfcCard : l.scanQrCode),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: _buildModeToggle(),
+          child: _buildModeToggle(l),
         ),
       ),
-      body: _nfcMode ? _buildNfcView() : _buildQrView(),
+      body: _nfcMode ? _buildNfcView(l) : _buildQrView(l),
     );
   }
 
-  Widget _buildModeToggle() {
+  Widget _buildModeToggle(AppLocalizations l) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
       child: Container(
         height: 36,
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(10),
-        ),
+        decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10)),
         child: Row(
           children: [
-            _toggleTab(label: 'QR Code', icon: Icons.qr_code_scanner, selected: !_nfcMode, onTap: () => _switchMode(false)),
-            _toggleTab(label: 'NFC Card', icon: Icons.credit_card, selected: _nfcMode, onTap: () => _switchMode(true)),
+            _toggleTab(label: l.qrCode, icon: Icons.qr_code_scanner, selected: !_nfcMode, onTap: () => _switchMode(false)),
+            _toggleTab(label: l.nfcCard, icon: Icons.credit_card, selected: _nfcMode, onTap: () => _switchMode(true)),
           ],
         ),
       ),
@@ -331,9 +301,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     );
   }
 
-  // â”€â”€ QR View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  Widget _buildQrView() {
+  Widget _buildQrView(AppLocalizations l) {
     return Stack(
       children: [
         MobileScanner(
@@ -347,11 +315,11 @@ class _ScanQrScreenState extends State<ScanQrScreen>
                 children: [
                   const Icon(Icons.camera_alt_outlined, color: Colors.white54, size: 64),
                   const SizedBox(height: 16),
-                  const Text('Camera failed to start', style: TextStyle(color: Colors.white70)),
+                  Text(l.cameraFailed, style: const TextStyle(color: Colors.white70)),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => _controller.start(),
-                    child: const Text('Tap to retry', style: TextStyle(color: AppColors.primaryLight)),
+                    child: Text(l.tapToRetry, style: const TextStyle(color: AppColors.primaryLight)),
                   ),
                 ],
               ),
@@ -375,27 +343,25 @@ class _ScanQrScreenState extends State<ScanQrScreen>
           }),
         ),
         Positioned(
-          bottom: 60,
-          left: 0,
-          right: 0,
+          bottom: 60, left: 0, right: 0,
           child: Column(children: [
             if (_isOffline)
               Container(
                 margin: const EdgeInsets.only(bottom: 10, left: 32, right: 32),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(20)),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.wifi_off, color: Colors.white, size: 14),
-                    SizedBox(width: 6),
-                    Text('Offline â€” local QR verification', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w400)),
+                    const Icon(Icons.wifi_off, color: Colors.white, size: 14),
+                    const SizedBox(width: 6),
+                    Text(l.offlineLocalQr, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w400)),
                   ],
                 ),
               ),
             if (!_isProcessing)
               Text(
-                _isLocked ? 'QR code detectedâ€¦' : _pendingValue != null ? 'Hold steadyâ€¦' : 'Point camera at the passenger\'s QR code',
+                _isLocked ? l.qrDetected : _pendingValue != null ? l.holdSteady : l.pointCameraAtQr,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: _isLocked ? Colors.greenAccent : Colors.white70, fontSize: 14),
               ),
@@ -403,7 +369,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
               const SizedBox(height: 16),
               const CircularProgressIndicator(color: AppColors.primaryLight),
               const SizedBox(height: 8),
-              const Text('Processing...', style: TextStyle(color: Colors.white70)),
+              Text(l.processing, style: const TextStyle(color: Colors.white70)),
             ],
           ]),
         ),
@@ -412,9 +378,7 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     );
   }
 
-  // â”€â”€ NFC View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  Widget _buildNfcView() {
+  Widget _buildNfcView(AppLocalizations l) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -425,42 +389,24 @@ class _ScanQrScreenState extends State<ScanQrScreen>
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: _nfcWaiting
-                    ? AppColors.primaryLight.withValues(alpha: 0.2)
-                    : Colors.white12,
+                color: _nfcWaiting ? AppColors.primaryLight.withValues(alpha: 0.2) : Colors.white12,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: _nfcWaiting ? AppColors.primaryLight : Colors.white24,
-                  width: 2,
-                ),
+                border: Border.all(color: _nfcWaiting ? AppColors.primaryLight : Colors.white24, width: 2),
               ),
-              child: Icon(
-                Icons.credit_card,
-                size: 72,
-                color: _nfcWaiting ? AppColors.primaryLight : Colors.white54,
-              ),
+              child: Icon(Icons.credit_card, size: 72, color: _nfcWaiting ? AppColors.primaryLight : Colors.white54),
             ),
             const SizedBox(height: 28),
             Text(
-              _isProcessing
-                  ? 'Looking up studentâ€¦'
-                  : _nfcWaiting
-                      ? 'Hold card to back of phone'
-                      : 'Ready â€” tap card to phone',
+              _isProcessing ? l.lookingUpStudent : _nfcWaiting ? l.holdCardToBack : l.readyTapCard,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-                color: _nfcWaiting ? AppColors.primaryLight : Colors.white,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400,
+                color: _nfcWaiting ? AppColors.primaryLight : Colors.white),
             ),
             const SizedBox(height: 10),
             if (!_isProcessing && !_nfcWaiting)
-              const Text(
-                'For physical UGO NFC cards only.\nTo scan a QR code, use the QR Code tab.',
+              Text(l.forNfcCardsOnly,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.5),
-              ),
+                style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.5)),
             const SizedBox(height: 36),
             if (_isProcessing)
               const CircularProgressIndicator(color: AppColors.primaryLight)
@@ -468,22 +414,19 @@ class _ScanQrScreenState extends State<ScanQrScreen>
               TextButton.icon(
                 onPressed: _cancelNfc,
                 icon: const Icon(Icons.close, color: Colors.white54),
-                label: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                label: Text(l.cancel, style: const TextStyle(color: Colors.white54)),
               )
             else
-              // Session stopped (e.g. after cancel) â€” let driver restart manually
               TextButton.icon(
                 onPressed: _startNfcScan,
                 icon: const Icon(Icons.refresh, color: Colors.white70),
-                label: const Text('Tap to listen again', style: TextStyle(color: Colors.white70)),
+                label: Text(l.tapToListenAgain, style: const TextStyle(color: Colors.white70)),
               ),
           ],
         ),
       ),
     );
   }
-
-  // â”€â”€ Corner decorations (QR mode only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   List<Widget> _buildCorners() {
     const size = 30.0;
@@ -494,18 +437,15 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     final screenHeight = MediaQuery.of(context).size.height;
     final frameSize = screenWidth < 360 ? 220.0 : 260.0;
     final frameLeft = (screenWidth - frameSize) / 2 - 2;
-    // subtract appBar height (56 default) + toggle bar (48)
     final frameTop = (screenHeight - frameSize) / 2 - 2 - 104;
     final frameRight = frameLeft + frameSize;
     final frameBottom = frameTop + frameSize;
 
     Widget corner({required double left, required double top, required bool isTop, required bool isLeft}) =>
         Positioned(
-          left: left,
-          top: top,
+          left: left, top: top,
           child: Container(
-            width: size,
-            height: size,
+            width: size, height: size,
             decoration: BoxDecoration(
               border: Border(
                 top: isTop ? const BorderSide(color: color, width: thick) : BorderSide.none,
@@ -525,4 +465,3 @@ class _ScanQrScreenState extends State<ScanQrScreen>
     ];
   }
 }
-
