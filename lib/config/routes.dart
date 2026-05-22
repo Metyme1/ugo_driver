@@ -28,6 +28,7 @@ import '../screens/profile/about_screen.dart';
 import '../screens/routes/route_management_screen.dart';
 import '../widgets/common/main_shell.dart';
 import '../screens/billing/driver_billing_screen.dart';
+import '../screens/billing/withdrawal_screen.dart';
 
 class AppRouter {
   static final _rootKey = GlobalKey<NavigatorState>();
@@ -106,6 +107,12 @@ class AppRouter {
       GoRoute(path: '/profile/help', builder: (_, __) => const HelpScreen()),
       GoRoute(path: '/profile/about', builder: (_, __) => const AboutScreen()),
       GoRoute(path: '/billing', builder: (_, __) => const DriverBillingScreen()),
+      GoRoute(
+        path: '/billing/withdraw',
+        builder: (_, state) => WithdrawalScreen(
+          availableBalance: (state.extra as double?) ?? 0,
+        ),
+      ),
     ],
   );
 }

@@ -72,4 +72,43 @@ class DriverBillingService {
       throw Exception(_api.handleError(e));
     }
   }
+
+  Future<List<Map<String, dynamic>>> getBanks() async {
+    try {
+      final response = await _api.get('/payment/banks');
+      final data = response.data;
+      if (data['success'] == true) {
+        return List<Map<String, dynamic>>.from(data['data']['banks'] as List);
+      }
+      throw Exception(data['error']?['message'] ?? 'Failed to fetch banks');
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
+
+  Future<String> requestWithdrawal({
+    required double amount,
+    required String bankCode,
+    required String accountNumber,
+    required String accountName,
+  }) async {
+    try {
+      final response = await _api.post(
+        '/driver/billing/withdraw',
+        data: {
+          'amount': amount,
+          'bankCode': bankCode,
+          'accountNumber': accountNumber,
+          'accountName': accountName,
+        },
+      );
+      final data = response.data;
+      if (data['success'] == true) {
+        return data['data']['reference'] as String? ?? '';
+      }
+      throw Exception(data['error']?['message'] ?? 'Withdrawal failed');
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
 }

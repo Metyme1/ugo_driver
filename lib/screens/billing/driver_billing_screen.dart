@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -442,6 +443,26 @@ class _PayoutCard extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: summary.estimatedPayout > 0
+                  ? () => context.push('/billing/withdraw',
+                        extra: summary.estimatedPayout)
+                  : null,
+              icon: const Icon(Icons.account_balance_outlined, size: 18),
+              label: const Text('Withdraw Funds'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.border,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+            ),
+          ),
         ],
       ),
     );
