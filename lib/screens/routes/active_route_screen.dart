@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import '../../config/theme.dart';
 import '../../l10n/app_localizations.dart';
@@ -29,7 +30,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   bool _loadingStudents = true;
   bool _completing = false;
 
-  Timer? _locationTimer;
+  StreamSubscription<Position>? _positionSub;
   String? _locationError;
 
   @override
@@ -41,29 +42,38 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
 
   @override
   void dispose() {
-    _locationTimer?.cancel();
+    _positionSub?.cancel();
     super.dispose();
   }
 
-  void _startLocationStream() {
-    _sendLocation();
-    _locationTimer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => _sendLocation(),
+  void _startLocationStream() async {
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.denied) {
+      perm = await Geolocator.requestPermission();
+    }
+    if (!mounted) return;
+    if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
+      final l = AppLocalizations.of(context);
+      setState(() => _locationError = l?.locationPermissionDenied ?? 'Location permission denied');
+      return;
+    }
+    _positionSub = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen(
+      _onPosition,
+      onError: (_) {
+        if (mounted) setState(() => _locationError = 'GPS unavailable');
+      },
     );
   }
 
-  Future<void> _sendLocation() async {
-    final l = AppLocalizations.of(context);
-    debugPrint('[GPS] Requesting position…');
-    final pos = await DriverTripService.getCurrentPosition();
-    if (pos == null) {
-      debugPrint('[GPS] ERROR: position is null');
-      if (mounted) setState(() => _locationError = l?.locationPermissionDenied ?? 'Location permission denied');
-      return;
-    }
+  Future<void> _onPosition(Position pos) async {
     final sent = await _service.updateLocation(widget.tripId, pos.latitude, pos.longitude);
     if (mounted) {
+      final l = AppLocalizations.of(context);
       setState(() => _locationError = sent ? null : (l?.locationUpdateFailed ?? 'Location update failed'));
     }
   }
