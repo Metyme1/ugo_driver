@@ -20,7 +20,15 @@ class DriverBillingProvider extends ChangeNotifier {
   bool _platformLoading = false;
   String? _platformError;
 
+  DriverWalletOverview? _walletOverview;
+  bool _walletLoading = false;
+  String? _walletError;
+
+  List<DriverEarlyReleaseRequest> _earlyReleaseRequests = [];
+  bool _earlyReleaseLoading = false;
+
   bool _submitting = false;
+  bool _requestingEarlyRelease = false;
 
   String get selectedMonth => _selectedMonth;
 
@@ -38,6 +46,14 @@ class DriverBillingProvider extends ChangeNotifier {
 
   bool get submitting => _submitting;
 
+  DriverWalletOverview? get walletOverview => _walletOverview;
+  bool get walletLoading => _walletLoading;
+  String? get walletError => _walletError;
+
+  List<DriverEarlyReleaseRequest> get earlyReleaseRequests => _earlyReleaseRequests;
+  bool get earlyReleaseLoading => _earlyReleaseLoading;
+  bool get requestingEarlyRelease => _requestingEarlyRelease;
+
   DriverPlatformSubscription? get currentMonthPlatformSub {
     try {
       return _platformSubs.firstWhere((s) => s.monthYear == _selectedMonth);
@@ -53,7 +69,55 @@ class DriverBillingProvider extends ChangeNotifier {
     loadAll();
   }
 
-  Future<void> loadAll() => Future.wait([loadSummary(), loadEarnings(), loadPlatformSubscriptions()]);
+  Future<void> loadAll() => Future.wait([
+    loadSummary(),
+    loadEarnings(),
+    loadPlatformSubscriptions(),
+    loadWalletOverview(),
+    loadEarlyReleaseRequests(),
+  ]);
+
+  Future<void> loadWalletOverview() async {
+    _walletLoading = true;
+    _walletError = null;
+    notifyListeners();
+    try {
+      _walletOverview = await _service.getWalletOverview();
+    } catch (e) {
+      _walletError = e.toString().replaceFirst('Exception: ', '');
+      _walletOverview = DriverWalletOverview.empty();
+    } finally {
+      _walletLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadEarlyReleaseRequests() async {
+    _earlyReleaseLoading = true;
+    notifyListeners();
+    try {
+      _earlyReleaseRequests = await _service.getEarlyReleaseRequests();
+    } catch (_) {
+      // Non-critical for the wallet view — fail silently and keep prior state.
+    } finally {
+      _earlyReleaseLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Submits a request to cash out a held subscription's earnings early.
+  /// Throws on failure so the calling UI can surface the error message.
+  Future<void> submitEarlyReleaseRequest(String subscriptionId, {String? note}) async {
+    _requestingEarlyRelease = true;
+    notifyListeners();
+    try {
+      await _service.requestEarlyRelease(subscriptionId: subscriptionId, note: note);
+      await Future.wait([loadWalletOverview(), loadEarlyReleaseRequests()]);
+    } finally {
+      _requestingEarlyRelease = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> loadSummary() async {
     _summaryLoading = true;

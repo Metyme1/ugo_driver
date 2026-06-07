@@ -173,16 +173,392 @@ class _SummaryTab extends StatelessWidget {
             child: Column(
               children: [
                 if (p.summaryError != null) _ErrorBanner(p.summaryError!),
+                const _WalletOverviewCard(),
+                const SizedBox(height: 12),
                 _BreakdownCard(summary: s),
                 const SizedBox(height: 12),
                 _ActivityRow(summary: s),
                 const SizedBox(height: 12),
-                _PayoutCard(summary: s),
+                _PayoutCard(summary: s, wallet: p.walletOverview),
               ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Wallet overview â€” lifetime balance breakdown by income source
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class _WalletOverviewCard extends StatelessWidget {
+  const _WalletOverviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<DriverBillingProvider>(
+      builder: (_, p, __) {
+        final w = p.walletOverview ?? DriverWalletOverview.empty();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 12),
+              child: Row(children: [
+                Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 18),
+                SizedBox(width: 8),
+                Text('Your Wallet', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)),
+              ]),
+            ),
+            _WalletSourceCard(
+              label: 'Total Income',
+              sub: 'All-time earnings on UGO — every source combined',
+              amount: w.totalIncome,
+              color: AppColors.primary,
+              icon: Icons.savings_outlined,
+            ),
+            const SizedBox(height: 12),
+            _WalletSourceCard(
+              label: 'Available Now',
+              sub: 'Withdraw instantly — from packages scanned: ETB ${w.unwithdrawnPackageBalance.toStringAsFixed(0)}',
+              amount: w.availableBalance,
+              color: AppColors.success,
+              icon: Icons.bolt_outlined,
+            ),
+            const SizedBox(height: 12),
+            _WalletSourceCard(
+              label: 'Pending from Subscriptions',
+              sub: w.nextReleaseDate != null
+                  ? 'Locked until ${_fmtShortDate(w.nextReleaseDate!)} — or request an early payout below'
+                  : 'Released once each contract period ends',
+              amount: w.pendingSubscriptionBalance,
+              color: AppColors.warning,
+              icon: Icons.lock_clock_outlined,
+              child: w.pendingBySubscription.isEmpty
+                  ? null
+                  : Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 14, bottom: 8),
+                          child: Divider(color: AppColors.border, height: 1),
+                        ),
+                        ...w.pendingBySubscription.map((sub) => _PendingSubscriptionRow(payout: sub)),
+                      ],
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A standalone card representing one income source on the driver's wallet —
+/// keeps "instant" (packages), "locked" (subscriptions) and lifetime totals
+/// visually distinct rather than rows within a single shared card.
+class _WalletSourceCard extends StatelessWidget {
+  final String label;
+  final String sub;
+  final double amount;
+  final Color color;
+  final IconData icon;
+  final Widget? child;
+  const _WalletSourceCard({
+    required this.label,
+    required this.sub,
+    required this.amount,
+    required this.color,
+    required this.icon,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    const SizedBox(height: 2),
+                    Text('ETB ${amount.toStringAsFixed(0)}',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: color)),
+                    const SizedBox(height: 2),
+                    Text(sub, style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (child != null) child!,
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingSubscriptionRow extends StatelessWidget {
+  final PendingSubscriptionPayout payout;
+  const _PendingSubscriptionRow({required this.payout});
+
+  @override
+  Widget build(BuildContext context) {
+    final date = payout.scheduledReleaseDate != null
+        ? _fmtShortDate(payout.scheduledReleaseDate!)
+        : 'â€”';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(payout.groupName ?? 'Subscription contract',
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
+                Text('ETB ${payout.amount.toStringAsFixed(0)}  â€¢  available $date',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+          _EarlyReleaseAction(payout: payout),
+        ],
+      ),
+    );
+  }
+}
+
+class _EarlyReleaseAction extends StatelessWidget {
+  final PendingSubscriptionPayout payout;
+  const _EarlyReleaseAction({required this.payout});
+
+  @override
+  Widget build(BuildContext context) {
+    if (payout.hasOpenRequest) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+            color: AppColors.info.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+        child: const Text('Requested',
+            style: TextStyle(fontSize: 11, color: AppColors.info, fontWeight: FontWeight.w500)),
+      );
+    }
+    if (!payout.canRequestEarlyRelease) return const SizedBox.shrink();
+    return TextButton(
+      onPressed: () => _openSheet(context),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: const Text('Request early payout',
+          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.warning)),
+    );
+  }
+
+  void _openSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => _EarlyReleaseRequestSheet(payout: payout),
+    );
+  }
+}
+
+class _EarlyReleaseRequestSheet extends StatefulWidget {
+  final PendingSubscriptionPayout payout;
+  const _EarlyReleaseRequestSheet({required this.payout});
+
+  @override
+  State<_EarlyReleaseRequestSheet> createState() => _EarlyReleaseRequestSheetState();
+}
+
+class _EarlyReleaseRequestSheetState extends State<_EarlyReleaseRequestSheet> {
+  final _noteCtrl = TextEditingController();
+  bool _submitting = false;
+  bool _submitted = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    setState(() { _submitting = true; _error = null; });
+    final provider = context.read<DriverBillingProvider>();
+    try {
+      await provider.submitEarlyReleaseRequest(widget.payout.subscriptionId, note: _noteCtrl.text.trim());
+      if (mounted) setState(() => _submitted = true);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final date = widget.payout.scheduledReleaseDate != null
+        ? _fmtFullDate(widget.payout.scheduledReleaseDate!)
+        : 'the contract end date';
+
+    if (_submitted) {
+      return Padding(
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 32,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: AppColors.info.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: const Icon(Icons.hourglass_top_rounded, color: AppColors.info, size: 36),
+            ),
+            const SizedBox(height: 16),
+            const Text('Request Submitted', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            const Text(
+              'UGO will review your request to end this subscription contract early. '
+              "You'll be notified once it's approved and the funds are released.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Done'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36, height: 4,
+              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('Request Early Payout',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+          const SizedBox(height: 4),
+          Text(
+            '${widget.payout.groupName ?? "This subscription"} â€” ETB ${widget.payout.amount.toStringAsFixed(0)} held until $date',
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.warning),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Requesting an early payout means agreeing to end your contract on this route â€” UGO will reassign it to another driver. This cannot be undone once approved.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('Reason (optional)', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _noteCtrl,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Let UGO know why you need this payout early',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.all(12),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _submitting ? null : _submit,
+              icon: _submitting
+                  ? const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.send_outlined),
+              label: Text(_submitting ? 'Submitting...' : 'Submit Request',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -348,7 +724,8 @@ class _StatBox extends StatelessWidget {
 
 class _PayoutCard extends StatelessWidget {
   final DriverMonthlySummary summary;
-  const _PayoutCard({required this.summary});
+  final DriverWalletOverview? wallet;
+  const _PayoutCard({required this.summary, this.wallet});
 
   @override
   Widget build(BuildContext context) {
@@ -447,9 +824,9 @@ class _PayoutCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: summary.estimatedPayout > 0
+              onPressed: (wallet?.availableBalance ?? 0) > 0
                   ? () => context.push('/billing/withdraw',
-                        extra: summary.estimatedPayout)
+                        extra: wallet!.availableBalance)
                   : null,
               icon: const Icon(Icons.account_balance_outlined, size: 18),
               label: const Text('Withdraw Funds'),
@@ -521,7 +898,7 @@ class _DailyEarningsTabState extends State<_DailyEarningsTab> {
         }
 
         final packageRecs = p.earnings
-            .where((e) => e.type == 'package_scan' || e.type == 'package')
+            .where((e) => e.type == 'ride_package_earning')
             .toList();
         final subRecs = p.earnings
             .where((e) => e.type == 'trip_earning')
@@ -1831,31 +2208,28 @@ class _EarningCard extends StatelessWidget {
 
   static Color _typeColor(String type) {
     switch (type) {
-      case 'trip_earning':    return AppColors.primary;
-      case 'university_ride': return const Color(0xFF7C3AED);
-      case 'package_scan':
-      case 'package':         return AppColors.success;
-      default:                return AppColors.secondary;
+      case 'trip_earning':         return AppColors.primary;
+      case 'university_ride':      return const Color(0xFF7C3AED);
+      case 'ride_package_earning': return AppColors.success;
+      default:                     return AppColors.secondary;
     }
   }
 
   static IconData _typeIcon(String type) {
     switch (type) {
-      case 'trip_earning':    return Icons.directions_car_outlined;
-      case 'university_ride': return Icons.school_outlined;
-      case 'package_scan':
-      case 'package':         return Icons.qr_code_scanner;
-      default:                return Icons.receipt_outlined;
+      case 'trip_earning':         return Icons.directions_car_outlined;
+      case 'university_ride':      return Icons.school_outlined;
+      case 'ride_package_earning': return Icons.qr_code_scanner;
+      default:                     return Icons.receipt_outlined;
     }
   }
 
   static String _typeTag(String type) {
     switch (type) {
-      case 'trip_earning':    return 'TRIP';
-      case 'university_ride': return 'UNI';
-      case 'package_scan':
-      case 'package':         return 'PKG';
-      default:                return 'SUB';
+      case 'trip_earning':         return 'TRIP';
+      case 'university_ride':      return 'UNI';
+      case 'ride_package_earning': return 'PKG';
+      default:                     return 'SUB';
     }
   }
 
@@ -1866,7 +2240,7 @@ class _EarningCard extends StatelessWidget {
     final icon  = _typeIcon(earning.type);
     final isTrip = earning.type == 'trip_earning';
     final isUni  = earning.type == 'university_ride';
-    final isPkg  = earning.type == 'package_scan' || earning.type == 'package';
+    final isPkg  = earning.type == 'ride_package_earning';
     final routeLabels = {
       'morning_to_school':   '${l.routeMorningToSchool}  07:00',
       'midday_to_home':      '${l.routeMiddayToHome}  12:00',

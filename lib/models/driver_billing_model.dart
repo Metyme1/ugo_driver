@@ -136,3 +136,123 @@ class DriverPlatformSubscription {
   bool get isWaived  => status == 'waived';
   bool get isPending => status == 'pending_payment';
 }
+
+/// One subscription contract whose earnings are still on hold, with the
+/// driver's early-release request status (if any) for that contract.
+class PendingSubscriptionPayout {
+  final String subscriptionId;
+  final String? groupName;
+  final double amount;
+  final DateTime? scheduledReleaseDate;
+  final String earlyReleaseRequestStatus; // none | pending | approved | rejected
+
+  const PendingSubscriptionPayout({
+    required this.subscriptionId,
+    this.groupName,
+    required this.amount,
+    this.scheduledReleaseDate,
+    required this.earlyReleaseRequestStatus,
+  });
+
+  factory PendingSubscriptionPayout.fromJson(Map<String, dynamic> json) {
+    return PendingSubscriptionPayout(
+      subscriptionId: json['subscriptionId'] as String? ?? '',
+      groupName:      json['groupName'] as String?,
+      amount:         (json['amount'] as num?)?.toDouble() ?? 0,
+      scheduledReleaseDate: json['scheduledReleaseDate'] != null
+          ? DateTime.tryParse(json['scheduledReleaseDate'] as String) : null,
+      earlyReleaseRequestStatus: json['earlyReleaseRequestStatus'] as String? ?? 'none',
+    );
+  }
+
+  bool get hasOpenRequest => earlyReleaseRequestStatus == 'pending';
+  bool get canRequestEarlyRelease =>
+      earlyReleaseRequestStatus == 'none' || earlyReleaseRequestStatus == 'rejected';
+}
+
+/// Lifetime wallet breakdown for the driver — distinguishes instantly
+/// withdrawable income (packages, trips, extra rides) from subscription
+/// income still on hold pending the contract's release date.
+class DriverWalletOverview {
+  final double totalIncome;
+  final double availableBalance;
+  final double unwithdrawnPackageBalance;
+  final double pendingSubscriptionBalance;
+  final DateTime? nextReleaseDate;
+  final List<PendingSubscriptionPayout> pendingBySubscription;
+  final String currency;
+
+  const DriverWalletOverview({
+    required this.totalIncome,
+    required this.availableBalance,
+    required this.unwithdrawnPackageBalance,
+    required this.pendingSubscriptionBalance,
+    this.nextReleaseDate,
+    required this.pendingBySubscription,
+    required this.currency,
+  });
+
+  factory DriverWalletOverview.fromJson(Map<String, dynamic> json) {
+    final list = json['pendingBySubscription'] as List<dynamic>? ?? [];
+    return DriverWalletOverview(
+      totalIncome:                (json['totalIncome'] as num?)?.toDouble() ?? 0,
+      availableBalance:           (json['availableBalance'] as num?)?.toDouble() ?? 0,
+      unwithdrawnPackageBalance:  (json['unwithdrawnPackageBalance'] as num?)?.toDouble() ?? 0,
+      pendingSubscriptionBalance: (json['pendingSubscriptionBalance'] as num?)?.toDouble() ?? 0,
+      nextReleaseDate: json['nextReleaseDate'] != null
+          ? DateTime.tryParse(json['nextReleaseDate'] as String) : null,
+      pendingBySubscription: list
+          .map((e) => PendingSubscriptionPayout.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      currency: json['currency'] as String? ?? 'ETB',
+    );
+  }
+
+  static DriverWalletOverview empty() => const DriverWalletOverview(
+    totalIncome: 0, availableBalance: 0, unwithdrawnPackageBalance: 0,
+    pendingSubscriptionBalance: 0, pendingBySubscription: [], currency: 'ETB',
+  );
+}
+
+/// A driver's request to cash out held subscription earnings early.
+class DriverEarlyReleaseRequest {
+  final String id;
+  final String subscriptionId;
+  final double totalAmount;
+  final String status; // pending | approved | rejected
+  final DateTime? requestedAt;
+  final DateTime? reviewedAt;
+  final String? adminNote;
+
+  const DriverEarlyReleaseRequest({
+    required this.id,
+    required this.subscriptionId,
+    required this.totalAmount,
+    required this.status,
+    this.requestedAt,
+    this.reviewedAt,
+    this.adminNote,
+  });
+
+  factory DriverEarlyReleaseRequest.fromJson(Map<String, dynamic> json) {
+    final sub = json['subscription'];
+    final subscriptionId = sub is Map<String, dynamic>
+        ? (sub['_id'] as String? ?? '')
+        : (sub as String? ?? '');
+    return DriverEarlyReleaseRequest(
+      id:             json['_id'] as String? ?? '',
+      subscriptionId: subscriptionId,
+      totalAmount:    (json['totalAmount'] as num?)?.toDouble() ?? 0,
+      status:         json['status'] as String? ?? 'pending',
+      requestedAt: json['requestedAt'] != null
+          ? DateTime.tryParse(json['requestedAt'] as String) : null,
+      reviewedAt: json['reviewedAt'] != null
+          ? DateTime.tryParse(json['reviewedAt'] as String) : null,
+      adminNote: json['adminNote'] as String?,
+    );
+  }
+
+  bool get isPending  => status == 'pending';
+  bool get isApproved => status == 'approved';
+  bool get isRejected => status == 'rejected';
+}

@@ -73,6 +73,50 @@ class DriverBillingService {
     }
   }
 
+  Future<DriverWalletOverview> getWalletOverview() async {
+    try {
+      final response = await _api.get('/driver/billing/wallet-overview');
+      final data = response.data;
+      if (data['success'] == true) {
+        return DriverWalletOverview.fromJson(data['data'] as Map<String, dynamic>);
+      }
+      throw Exception(data['error']?['message'] ?? 'Failed to fetch wallet overview');
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
+
+  Future<void> requestEarlyRelease({required String subscriptionId, String? note}) async {
+    try {
+      final response = await _api.post(
+        '/driver/billing/subscriptions/$subscriptionId/early-release-request',
+        data: {if (note != null && note.isNotEmpty) 'note': note},
+      );
+      final data = response.data;
+      if (data['success'] != true) {
+        throw Exception(data['error']?['message'] ?? 'Failed to submit early-release request');
+      }
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
+
+  Future<List<DriverEarlyReleaseRequest>> getEarlyReleaseRequests() async {
+    try {
+      final response = await _api.get('/driver/billing/early-release-requests');
+      final data = response.data;
+      if (data['success'] == true) {
+        final list = data['data']['requests'] as List<dynamic>? ?? [];
+        return list
+            .map((e) => DriverEarlyReleaseRequest.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      throw Exception(data['error']?['message'] ?? 'Failed to fetch early-release requests');
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getBanks() async {
     try {
       final response = await _api.get('/payment/banks');
