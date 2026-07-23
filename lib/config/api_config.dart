@@ -1,6 +1,6 @@
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.1.2:3001/api';
-//   static const String baseUrl = 'https://ugo-admin-cdi4.onrender.com/api';
+  //static const String baseUrl = 'http://192.168.1.2:3001/api';
+  static const String baseUrl = 'https://ugo-admin-cdi4.onrender.com/api';
 
   static const int connectionTimeout = 60000;
   static const int receiveTimeout = 60000;
