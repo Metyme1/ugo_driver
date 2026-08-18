@@ -829,5 +829,20 @@
   "appCountry": "Country",
   "@appCountry": {},
   "copyright": "© 2025 UGO Technologies. All rights reserved.",
-  "@copyright": {}
+  "@copyright": {},
+
+  "myRatings": "My Ratings",
+  "@myRatings": {},
+  "ratingsAndReviews": "Ratings & Reviews",
+  "@ratingsAndReviews": {},
+  "reviewsCount": "{count} reviews",
+  "@reviewsCount": { "placeholders": { "count": { "type": "int" } } },
+  "noReviewsYet": "No reviews yet",
+  "@noReviewsYet": {},
+  "noReviewsYetMsg": "Complete more trips to start receiving reviews from parents.",
+  "@noReviewsYetMsg": {},
+  "loadMoreReviews": "Load more",
+  "@loadMoreReviews": {},
+  "failedToLoadReviews": "Failed to load reviews",
+  "@failedToLoadReviews": {}
 }

@@ -25,6 +25,7 @@ import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/change_password_screen.dart';
 import '../screens/profile/help_screen.dart';
 import '../screens/profile/about_screen.dart';
+import '../screens/profile/my_ratings_screen.dart';
 import '../screens/routes/route_management_screen.dart';
 import '../widgets/common/main_shell.dart';
 import '../screens/billing/driver_billing_screen.dart';
@@ -106,6 +107,7 @@ class AppRouter {
       GoRoute(path: '/profile/change-password', builder: (_, __) => const ChangePasswordScreen()),
       GoRoute(path: '/profile/help', builder: (_, __) => const HelpScreen()),
       GoRoute(path: '/profile/about', builder: (_, __) => const AboutScreen()),
+      GoRoute(path: '/profile/ratings', builder: (_, __) => const MyRatingsScreen()),
       GoRoute(path: '/billing', builder: (_, __) => const DriverBillingScreen()),
       GoRoute(
         path: '/billing/withdraw',

@@ -8,6 +8,7 @@ import 'providers/nomination_provider.dart';
 import 'providers/group_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'providers/driver_billing_provider.dart';
+import 'providers/rating_provider.dart';
 import 'services/api_service.dart';
 import 'services/fcm_service.dart';
 
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GroupProvider()),
         ChangeNotifierProvider(create: (_) => NotificationsProvider()),
         ChangeNotifierProvider(create: (_) => DriverBillingProvider()),
+        ChangeNotifierProvider(create: (_) => RatingProvider()),
       ],
       child: const UGoDriverApp(),
     ),

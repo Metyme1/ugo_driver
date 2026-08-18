@@ -1259,4 +1259,27 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get copyright => '© 2025 UGO Technologies. ሁሉም መብቶች የተጠበቁ ናቸው።';
+
+  @override
+  String get myRatings => 'የእኔ ደረጃዎች';
+
+  @override
+  String get ratingsAndReviews => 'ደረጃዎች እና ግምገማዎች';
+
+  @override
+  String reviewsCount(int count) {
+    return '$count ግምገማዎች';
+  }
+
+  @override
+  String get noReviewsYet => 'እስካሁን ግምገማ የለም';
+
+  @override
+  String get noReviewsYetMsg => 'ከወላጆች ግምገማ ማግኘት ለመጀመር ተጨማሪ ጉዞዎችን ያጠናቅቁ።';
+
+  @override
+  String get loadMoreReviews => 'ተጨማሪ ይጫኑ';
+
+  @override
+  String get failedToLoadReviews => 'ግምገማዎችን መጫን አልተሳካም';
 }

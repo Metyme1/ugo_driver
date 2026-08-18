@@ -419,5 +419,12 @@
   "appDeveloper": "ገንቢ",
   "appContact": "ግንኙነት",
   "appCountry": "አገር",
-  "copyright": "© 2025 UGO Technologies. ሁሉም መብቶች የተጠበቁ ናቸው።"
+  "copyright": "© 2025 UGO Technologies. ሁሉም መብቶች የተጠበቁ ናቸው።",
+  "myRatings": "የእኔ ደረጃዎች",
+  "ratingsAndReviews": "ደረጃዎች እና ግምገማዎች",
+  "reviewsCount": "{count} ግምገማዎች",
+  "noReviewsYet": "እስካሁን ግምገማ የለም",
+  "noReviewsYetMsg": "ከወላጆች ግምገማ ማግኘት ለመጀመር ተጨማሪ ጉዞዎችን ያጠናቅቁ።",
+  "loadMoreReviews": "ተጨማሪ ይጫኑ",
+  "failedToLoadReviews": "ግምገማዎችን መጫን አልተሳካም"
 }

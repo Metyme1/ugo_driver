@@ -52,6 +52,12 @@ class ProfileScreen extends StatelessWidget {
                         iconColor: AppColors.accent,
                         onTap: () => context.push('/billing'),
                       ),
+                      _ActionTile(
+                        icon: Icons.star_outline_rounded,
+                        label: l.myRatings,
+                        iconColor: const Color(0xFFFFC107),
+                        onTap: () => context.push('/profile/ratings'),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 14),

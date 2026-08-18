@@ -1272,4 +1272,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyright => '© 2025 UGO Technologies. All rights reserved.';
+
+  @override
+  String get myRatings => 'My Ratings';
+
+  @override
+  String get ratingsAndReviews => 'Ratings & Reviews';
+
+  @override
+  String reviewsCount(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get noReviewsYet => 'No reviews yet';
+
+  @override
+  String get noReviewsYetMsg =>
+      'Complete more trips to start receiving reviews from parents.';
+
+  @override
+  String get loadMoreReviews => 'Load more';
+
+  @override
+  String get failedToLoadReviews => 'Failed to load reviews';
 }

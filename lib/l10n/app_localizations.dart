@@ -2431,6 +2431,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'© 2025 UGO Technologies. All rights reserved.'**
   String get copyright;
+
+  /// No description provided for @myRatings.
+  ///
+  /// In en, this message translates to:
+  /// **'My Ratings'**
+  String get myRatings;
+
+  /// No description provided for @ratingsAndReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Ratings & Reviews'**
+  String get ratingsAndReviews;
+
+  /// No description provided for @reviewsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} reviews'**
+  String reviewsCount(int count);
+
+  /// No description provided for @noReviewsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews yet'**
+  String get noReviewsYet;
+
+  /// No description provided for @noReviewsYetMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete more trips to start receiving reviews from parents.'**
+  String get noReviewsYetMsg;
+
+  /// No description provided for @loadMoreReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMoreReviews;
+
+  /// No description provided for @failedToLoadReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load reviews'**
+  String get failedToLoadReviews;
 }
 
 class _AppLocalizationsDelegate
