@@ -1282,4 +1282,32 @@ class AppLocalizationsAm extends AppLocalizations {
 
   @override
   String get failedToLoadReviews => 'ግምገማዎችን መጫን አልተሳካም';
+
+  @override
+  String get notifyParents => 'ወላጆችን አሳውቅ';
+
+  @override
+  String get notifyParentsSheetTitle => 'ፈጣን ማሳወቂያ ላክ';
+
+  @override
+  String get notifyParentsSheetSubtitle =>
+      'በዚህ ጉዞ ላይ ያሉ ወላጆች የግፋ ማሳወቂያ ይደርሳቸዋል።';
+
+  @override
+  String get presetRunningLate => 'ዘግይቻለሁ';
+
+  @override
+  String get presetNearPickup => 'ወደ መውሰጃ ቦታ ተቃርቤያለሁ';
+
+  @override
+  String get presetArrived => 'ወደ መውሰጃ ቦታ ደርሻለሁ';
+
+  @override
+  String get presetTrafficDelay => 'በትራፊክ ምክንያት ዘግይቷል';
+
+  @override
+  String get presetNearDropoff => 'ወደ መድረሻ ቦታ ተቃርቤያለሁ';
+
+  @override
+  String get notifySent => 'ወላጆች ተነግረዋል';
 }

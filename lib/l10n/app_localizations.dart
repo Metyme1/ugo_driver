@@ -2473,6 +2473,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load reviews'**
   String get failedToLoadReviews;
+
+  /// No description provided for @notifyParents.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify Parents'**
+  String get notifyParents;
+
+  /// No description provided for @notifyParentsSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a quick update'**
+  String get notifyParentsSheetTitle;
+
+  /// No description provided for @notifyParentsSheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents on this trip will get a push notification.'**
+  String get notifyParentsSheetSubtitle;
+
+  /// No description provided for @presetRunningLate.
+  ///
+  /// In en, this message translates to:
+  /// **'Running late'**
+  String get presetRunningLate;
+
+  /// No description provided for @presetNearPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost at pickup point'**
+  String get presetNearPickup;
+
+  /// No description provided for @presetArrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived at pickup point'**
+  String get presetArrived;
+
+  /// No description provided for @presetTrafficDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delayed due to traffic'**
+  String get presetTrafficDelay;
+
+  /// No description provided for @presetNearDropoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost at drop-off point'**
+  String get presetNearDropoff;
+
+  /// No description provided for @notifySent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parents notified'**
+  String get notifySent;
 }
 
 class _AppLocalizationsDelegate

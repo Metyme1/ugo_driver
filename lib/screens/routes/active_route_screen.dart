@@ -32,6 +32,7 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
 
   StreamSubscription<Position>? _positionSub;
   String? _locationError;
+  bool _notifying = false;
 
   @override
   void initState() {
@@ -149,6 +150,78 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
     );
   }
 
+  List<_NotifyPreset> _presets(AppLocalizations l) => [
+        _NotifyPreset('running_late', l.presetRunningLate, Icons.schedule_rounded),
+        _NotifyPreset('near_pickup', l.presetNearPickup, Icons.near_me_rounded),
+        _NotifyPreset('arrived', l.presetArrived, Icons.check_circle_outline_rounded),
+        _NotifyPreset('traffic_delay', l.presetTrafficDelay, Icons.traffic_rounded),
+        _NotifyPreset('near_dropoff', l.presetNearDropoff, Icons.flag_circle_outlined),
+      ];
+
+  void _showNotifySheet() {
+    final l = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(l.notifyParentsSheetTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: AppColors.textPrimary)),
+              const SizedBox(height: 4),
+              Text(l.notifyParentsSheetSubtitle,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              const SizedBox(height: 12),
+              for (final preset in _presets(l))
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
+                    child: Icon(preset.icon, color: AppColors.primary, size: 20),
+                  ),
+                  title: Text(preset.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    _sendPreset(preset.key);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendPreset(String preset) async {
+    setState(() => _notifying = true);
+    try {
+      await _service.notifyParents(widget.tripId, preset);
+      if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.notifySent), backgroundColor: AppColors.success),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _notifying = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -160,6 +233,16 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
       appBar: AppBar(
         title: Text(widget.tripLabel),
         actions: [
+          IconButton(
+            icon: _notifying
+                ? const SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  )
+                : const Icon(Icons.campaign_outlined),
+            onPressed: _notifying ? null : _showNotifySheet,
+            tooltip: l.notifyParents,
+          ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
             onPressed: () => context.push('/scan'),
@@ -357,6 +440,13 @@ class _ActionButton extends StatelessWidget {
           minimumSize: Size.zero,
         ),
       );
+}
+
+class _NotifyPreset {
+  final String key;
+  final String label;
+  final IconData icon;
+  const _NotifyPreset(this.key, this.label, this.icon);
 }
 
 class _StatChip extends StatelessWidget {

@@ -37,6 +37,23 @@ class DriverTripService {
     }
   }
 
+  /// POST /api/driver/trips/:tripId/notify
+  /// Sends a canned status alert (e.g. "running late") to every parent on the trip.
+  Future<void> notifyParents(String tripId, String preset) async {
+    try {
+      final response = await _api.post(
+        '/driver/trips/$tripId/notify',
+        data: {'preset': preset},
+      );
+      final data = response.data;
+      if (data['success'] != true) {
+        throw Exception(data['error']?['message'] ?? 'Failed to notify parents');
+      }
+    } on DioException catch (e) {
+      throw Exception(_api.handleError(e));
+    }
+  }
+
   /// PUT /api/driver/trips/:tripId/location
   /// Returns true if the backend accepted the update, false otherwise.
   Future<bool> updateLocation(String tripId, double lat, double lng) async {

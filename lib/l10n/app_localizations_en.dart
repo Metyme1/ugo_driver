@@ -1296,4 +1296,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToLoadReviews => 'Failed to load reviews';
+
+  @override
+  String get notifyParents => 'Notify Parents';
+
+  @override
+  String get notifyParentsSheetTitle => 'Send a quick update';
+
+  @override
+  String get notifyParentsSheetSubtitle =>
+      'Parents on this trip will get a push notification.';
+
+  @override
+  String get presetRunningLate => 'Running late';
+
+  @override
+  String get presetNearPickup => 'Almost at pickup point';
+
+  @override
+  String get presetArrived => 'Arrived at pickup point';
+
+  @override
+  String get presetTrafficDelay => 'Delayed due to traffic';
+
+  @override
+  String get presetNearDropoff => 'Almost at drop-off point';
+
+  @override
+  String get notifySent => 'Parents notified';
 }

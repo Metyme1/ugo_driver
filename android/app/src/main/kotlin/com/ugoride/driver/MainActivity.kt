@@ -1,4 +1,4 @@
-package com.example.ugo_driver
+package com.ugoride.driver
 
 import io.flutter.embedding.android.FlutterActivity
 

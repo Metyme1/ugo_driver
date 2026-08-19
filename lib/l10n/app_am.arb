@@ -426,5 +426,14 @@
   "noReviewsYet": "እስካሁን ግምገማ የለም",
   "noReviewsYetMsg": "ከወላጆች ግምገማ ማግኘት ለመጀመር ተጨማሪ ጉዞዎችን ያጠናቅቁ።",
   "loadMoreReviews": "ተጨማሪ ይጫኑ",
-  "failedToLoadReviews": "ግምገማዎችን መጫን አልተሳካም"
+  "failedToLoadReviews": "ግምገማዎችን መጫን አልተሳካም",
+  "notifyParents": "ወላጆችን አሳውቅ",
+  "notifyParentsSheetTitle": "ፈጣን ማሳወቂያ ላክ",
+  "notifyParentsSheetSubtitle": "በዚህ ጉዞ ላይ ያሉ ወላጆች የግፋ ማሳወቂያ ይደርሳቸዋል።",
+  "presetRunningLate": "ዘግይቻለሁ",
+  "presetNearPickup": "ወደ መውሰጃ ቦታ ተቃርቤያለሁ",
+  "presetArrived": "ወደ መውሰጃ ቦታ ደርሻለሁ",
+  "presetTrafficDelay": "በትራፊክ ምክንያት ዘግይቷል",
+  "presetNearDropoff": "ወደ መድረሻ ቦታ ተቃርቤያለሁ",
+  "notifySent": "ወላጆች ተነግረዋል"
 }

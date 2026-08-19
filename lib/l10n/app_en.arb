@@ -844,5 +844,24 @@
   "loadMoreReviews": "Load more",
   "@loadMoreReviews": {},
   "failedToLoadReviews": "Failed to load reviews",
-  "@failedToLoadReviews": {}
+  "@failedToLoadReviews": {},
+
+  "notifyParents": "Notify Parents",
+  "@notifyParents": {},
+  "notifyParentsSheetTitle": "Send a quick update",
+  "@notifyParentsSheetTitle": {},
+  "notifyParentsSheetSubtitle": "Parents on this trip will get a push notification.",
+  "@notifyParentsSheetSubtitle": {},
+  "presetRunningLate": "Running late",
+  "@presetRunningLate": {},
+  "presetNearPickup": "Almost at pickup point",
+  "@presetNearPickup": {},
+  "presetArrived": "Arrived at pickup point",
+  "@presetArrived": {},
+  "presetTrafficDelay": "Delayed due to traffic",
+  "@presetTrafficDelay": {},
+  "presetNearDropoff": "Almost at drop-off point",
+  "@presetNearDropoff": {},
+  "notifySent": "Parents notified",
+  "@notifySent": {}
 }
