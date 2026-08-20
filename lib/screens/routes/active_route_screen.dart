@@ -50,6 +50,13 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
   void _startLocationStream() async {
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) {
+      final agreed = await _showLocationDisclosure();
+      if (!mounted) return;
+      if (!agreed) {
+        final l = AppLocalizations.of(context);
+        setState(() => _locationError = l?.locationPermissionDenied ?? 'Location permission denied');
+        return;
+      }
       perm = await Geolocator.requestPermission();
     }
     if (!mounted) return;
@@ -69,6 +76,35 @@ class _ActiveRouteScreenState extends State<ActiveRouteScreen> {
         if (mounted) setState(() => _locationError = 'GPS unavailable');
       },
     );
+  }
+
+  Future<bool> _showLocationDisclosure() async {
+    final l = AppLocalizations.of(context);
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l?.locationDisclosureTitle ?? 'Share Location During Route'),
+        content: Text(
+          l?.locationDisclosureBody ??
+              'To track this route, Ugo Driver shares your live location with '
+                  'parents and school admins — including in the background, if you '
+                  'lock your phone or switch apps while driving. Location is only '
+                  'shared while a route is active.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l?.locationDisclosureDeny ?? 'Not Now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l?.locationDisclosureAllow ?? 'Allow Location Access'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 
   Future<void> _onPosition(Position pos) async {

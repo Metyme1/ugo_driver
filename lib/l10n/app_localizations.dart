@@ -1286,6 +1286,30 @@ abstract class AppLocalizations {
   /// **'Location update failed'**
   String get locationUpdateFailed;
 
+  /// No description provided for @locationDisclosureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Location During Route'**
+  String get locationDisclosureTitle;
+
+  /// No description provided for @locationDisclosureBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To track this route, Ugo Driver shares your live location with parents and school admins — including in the background, if you lock your phone or switch apps while driving. Location is only shared while a route is active.'**
+  String get locationDisclosureBody;
+
+  /// No description provided for @locationDisclosureAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Location Access'**
+  String get locationDisclosureAllow;
+
+  /// No description provided for @locationDisclosureDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Now'**
+  String get locationDisclosureDeny;
+
   /// No description provided for @scanQrCode.
   ///
   /// In en, this message translates to:

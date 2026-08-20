@@ -630,6 +630,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationUpdateFailed => 'Location update failed';
 
   @override
+  String get locationDisclosureTitle => 'Share Location During Route';
+
+  @override
+  String get locationDisclosureBody =>
+      'To track this route, Ugo Driver shares your live location with parents and school admins — including in the background, if you lock your phone or switch apps while driving. Location is only shared while a route is active.';
+
+  @override
+  String get locationDisclosureAllow => 'Allow Location Access';
+
+  @override
+  String get locationDisclosureDeny => 'Not Now';
+
+  @override
   String get scanQrCode => 'Scan – QR Code';
 
   @override

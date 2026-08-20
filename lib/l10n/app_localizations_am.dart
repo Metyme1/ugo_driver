@@ -625,6 +625,19 @@ class AppLocalizationsAm extends AppLocalizations {
   String get locationUpdateFailed => 'የቦታ ዝማኔ አልተሳካም';
 
   @override
+  String get locationDisclosureTitle => 'በመንገድ ላይ ቦታን ማጋራት';
+
+  @override
+  String get locationDisclosureBody =>
+      'ይህን መንገድ ለመከታተል፣ Ugo Driver ቀጥታ ቦታዎን ለወላጆች እና ለትምህርት ቤት አስተዳዳሪዎች ያጋራል — ስልክዎን ቆልፈው ወይም መተግበሪያ ቢቀይሩ እንኳ በጀርባ ውስጥ ጨምሮ። ቦታ የሚጋራው መንገድ ገቢር ሆኖ ሳለ ብቻ ነው።';
+
+  @override
+  String get locationDisclosureAllow => 'የቦታ መዳረሻ ፍቀድ';
+
+  @override
+  String get locationDisclosureDeny => 'አሁን አይደለም';
+
+  @override
   String get scanQrCode => 'ስካን – QR ኮድ';
 
   @override

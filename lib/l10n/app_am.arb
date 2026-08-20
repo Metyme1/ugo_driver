@@ -216,6 +216,10 @@
   "refreshStudents": "ተማሪዎችን አድስ",
   "locationPermissionDenied": "የቦታ ፈቃድ ተከልክሏል",
   "locationUpdateFailed": "የቦታ ዝማኔ አልተሳካም",
+  "locationDisclosureTitle": "በመንገድ ላይ ቦታን ማጋራት",
+  "locationDisclosureBody": "ይህን መንገድ ለመከታተል፣ Ugo Driver ቀጥታ ቦታዎን ለወላጆች እና ለትምህርት ቤት አስተዳዳሪዎች ያጋራል — ስልክዎን ቆልፈው ወይም መተግበሪያ ቢቀይሩ እንኳ በጀርባ ውስጥ ጨምሮ። ቦታ የሚጋራው መንገድ ገቢር ሆኖ ሳለ ብቻ ነው።",
+  "locationDisclosureAllow": "የቦታ መዳረሻ ፍቀድ",
+  "locationDisclosureDeny": "አሁን አይደለም",
 
   "scanQrCode": "ስካን – QR ኮድ",
   "scanNfcCard": "ስካን – NFC ካርድ",
